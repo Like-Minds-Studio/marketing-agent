@@ -142,34 +142,34 @@ export default function CalendarTab({ davidContext }: Props) {
       <div className="max-w-3xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <h2 className="text-xl font-bold text-white tracking-tight mb-1">Content Calendar</h2>
-          <p className="text-sm text-white/40">Set your week and focus — get a full 7-day social content calendar, ready to schedule.</p>
+          <h2 className="text-xl font-bold text-lm-bone tracking-tight mb-1">Content Calendar</h2>
+          <p className="text-sm text-lm-muted">Set your week and focus — get a full 7-day social content calendar, ready to schedule.</p>
         </div>
 
         {/* Form */}
-        <div className="bg-white/3 border border-white/10 rounded-2xl p-6 space-y-5">
+        <div className="bg-lm-bone/4 border border-lm-bone/10 rounded-2xl p-6 space-y-5">
           {/* Week start + audience */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-white/50 mb-1.5 uppercase tracking-widest">
+              <label className="block text-xs font-medium text-lm-warm mb-1.5 uppercase tracking-widest">
                 Week Starting
               </label>
               <input
                 type="date"
                 value={weekStart}
                 onChange={(e) => setWeekStart(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 focus:border-[#AE8ADD]/50 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none transition-colors"
+                className="w-full bg-lm-bone/5 border border-lm-bone/10 focus:border-lm-lilac/40 rounded-xl px-4 py-2.5 text-sm text-lm-bone focus:outline-none transition-colors"
                 style={{ colorScheme: 'dark' }}
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-white/50 mb-1.5 uppercase tracking-widest">
+              <label className="block text-xs font-medium text-lm-warm mb-1.5 uppercase tracking-widest">
                 Target Audience
               </label>
               <select
                 value={audience}
                 onChange={(e) => setAudience(e.target.value)}
-                className="w-full bg-[#1a1a1a] border border-white/10 focus:border-[#AE8ADD]/50 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none transition-colors appearance-none"
+                className="w-full bg-lm-raised border border-lm-bone/10 focus:border-lm-lilac/40 rounded-xl px-4 py-2.5 text-sm text-lm-bone focus:outline-none transition-colors appearance-none"
               >
                 {AUDIENCE_OPTIONS.map((opt) => (
                   <option key={opt} value={opt}>{opt}</option>
@@ -180,8 +180,8 @@ export default function CalendarTab({ davidContext }: Props) {
 
           {/* Platforms */}
           <div>
-            <label className="block text-xs font-medium text-white/50 mb-2 uppercase tracking-widest">
-              Platforms <span className="text-[#AE8ADD]">*</span>
+            <label className="block text-xs font-medium text-lm-warm mb-2 uppercase tracking-widest">
+              Platforms <span className="text-lm-lilac">*</span>
             </label>
             <div className="flex gap-2 flex-wrap">
               {PLATFORM_OPTIONS.map((p) => (
@@ -190,8 +190,8 @@ export default function CalendarTab({ davidContext }: Props) {
                   onClick={() => togglePlatform(p)}
                   className={`px-4 py-2 rounded-xl text-sm font-medium transition-all border ${
                     platforms.includes(p)
-                      ? 'bg-[#AE8ADD]/20 border-[#AE8ADD]/50 text-[#AE8ADD]'
-                      : 'bg-white/5 border-white/10 text-white/40 hover:text-white/70 hover:border-white/20'
+                      ? 'bg-lm-lilac/20 border-lm-lilac/50 text-lm-lilac'
+                      : 'bg-lm-bone/5 border-lm-bone/10 text-lm-muted hover:text-lm-warm hover:border-lm-bone/20'
                   }`}
                 >
                   {p}
@@ -202,7 +202,7 @@ export default function CalendarTab({ davidContext }: Props) {
 
           {/* Campaign focus */}
           <div>
-            <label className="block text-xs font-medium text-white/50 mb-1.5 uppercase tracking-widest">
+            <label className="block text-xs font-medium text-lm-warm mb-1.5 uppercase tracking-widest">
               Campaign Focus / Key Message
             </label>
             <input
@@ -210,13 +210,13 @@ export default function CalendarTab({ davidContext }: Props) {
               value={focus}
               onChange={(e) => setFocus(e.target.value)}
               placeholder="e.g. Kumori launch, multi-site rollout expertise, Good Sides concept"
-              className="w-full bg-white/5 border border-white/10 focus:border-[#AE8ADD]/50 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/20 focus:outline-none transition-colors"
+              className="w-full bg-lm-bone/5 border border-lm-bone/10 focus:border-lm-lilac/40 rounded-xl px-4 py-2.5 text-sm text-lm-bone placeholder-lm-muted/60 focus:outline-none transition-colors"
             />
           </div>
 
           {/* Projects to highlight */}
           <div>
-            <label className="block text-xs font-medium text-white/50 mb-1.5 uppercase tracking-widest">
+            <label className="block text-xs font-medium text-lm-warm mb-1.5 uppercase tracking-widest">
               Projects to Highlight
             </label>
             <input
@@ -224,7 +224,7 @@ export default function CalendarTab({ davidContext }: Props) {
               value={projects}
               onChange={(e) => setProjects(e.target.value)}
               placeholder="e.g. 67 Pall Mall, Strong Pilates Manly, 1 Remedy Potts Point"
-              className="w-full bg-white/5 border border-white/10 focus:border-[#AE8ADD]/50 rounded-xl px-4 py-2.5 text-sm text-white placeholder-white/20 focus:outline-none transition-colors"
+              className="w-full bg-lm-bone/5 border border-lm-bone/10 focus:border-lm-lilac/40 rounded-xl px-4 py-2.5 text-sm text-lm-bone placeholder-lm-muted/60 focus:outline-none transition-colors"
             />
           </div>
 
@@ -233,7 +233,7 @@ export default function CalendarTab({ davidContext }: Props) {
             {loading ? (
               <button
                 onClick={handleStop}
-                className="flex items-center gap-2 px-5 py-2.5 bg-white/10 hover:bg-white/15 rounded-xl text-sm text-white/70 transition-colors"
+                className="flex items-center gap-2 px-5 py-2.5 bg-lm-bone/10 hover:bg-lm-bone/12 rounded-xl text-sm text-lm-warm transition-colors"
               >
                 <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
                   <rect x="6" y="6" width="12" height="12" rx="1" />
@@ -244,7 +244,7 @@ export default function CalendarTab({ davidContext }: Props) {
               <button
                 onClick={generate}
                 disabled={platforms.length === 0}
-                className="flex items-center gap-2 px-5 py-2.5 bg-[#AE8ADD] hover:bg-[#C4A3E8] disabled:bg-white/10 disabled:cursor-not-allowed rounded-xl text-sm font-semibold text-black disabled:text-white/30 transition-colors"
+                className="flex items-center gap-2 px-5 py-2.5 bg-lm-lilac hover:bg-[#C4A3E8] disabled:bg-lm-bone/10 disabled:cursor-not-allowed rounded-xl text-sm font-semibold text-black disabled:text-lm-muted transition-colors"
               >
                 Generate Calendar
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
@@ -259,13 +259,13 @@ export default function CalendarTab({ davidContext }: Props) {
         {(output || loading) && (
           <div className="mt-6">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-medium text-white/40 uppercase tracking-widest">
+              <span className="text-xs font-medium text-lm-muted uppercase tracking-widest">
                 {loading ? 'Generating…' : 'Content Calendar'}
               </span>
               {output && !loading && (
                 <button
                   onClick={copyToClipboard}
-                  className="flex items-center gap-1.5 text-xs text-white/40 hover:text-white/70 transition-colors px-3 py-1 rounded-lg hover:bg-white/5"
+                  className="flex items-center gap-1.5 text-xs text-lm-muted hover:text-lm-warm transition-colors px-3 py-1 rounded-lg hover:bg-lm-bone/5"
                 >
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -275,25 +275,25 @@ export default function CalendarTab({ davidContext }: Props) {
               )}
             </div>
 
-            <div className="bg-white/3 border border-white/10 rounded-2xl px-6 py-5">
+            <div className="bg-lm-bone/4 border border-lm-bone/10 rounded-2xl px-6 py-5">
               {output ? (
                 <div className="prose prose-invert prose-sm max-w-none
-                  prose-headings:font-bold prose-headings:text-white prose-headings:mt-5 prose-headings:mb-2
+                  prose-headings:font-bold prose-headings:text-lm-bone prose-headings:mt-5 prose-headings:mb-2
                   prose-h1:text-lg prose-h2:text-base prose-h3:text-sm
-                  prose-p:text-white/80 prose-p:my-2 prose-p:leading-relaxed
-                  prose-strong:text-white
-                  prose-ul:text-white/80 prose-ol:text-white/80 prose-li:my-0.5
-                  prose-hr:border-white/10
-                  prose-code:text-[#AE8ADD] prose-code:bg-white/5 prose-code:px-1 prose-code:rounded
-                  prose-blockquote:border-[#AE8ADD] prose-blockquote:text-white/60
-                  prose-a:text-[#AE8ADD]">
+                  prose-p:text-lm-bone/80 prose-p:my-2 prose-p:leading-relaxed
+                  prose-strong:text-lm-bone
+                  prose-ul:text-lm-bone/80 prose-ol:text-lm-bone/80 prose-li:my-0.5
+                  prose-hr:border-lm-bone/10
+                  prose-code:text-lm-lilac prose-code:bg-lm-bone/5 prose-code:px-1 prose-code:rounded
+                  prose-blockquote:border-lm-lilac prose-blockquote:text-lm-warm
+                  prose-a:text-lm-lilac">
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>{output}</ReactMarkdown>
                 </div>
               ) : (
-                <span className="inline-flex gap-1 items-center text-white/40">
-                  <span className="w-1.5 h-1.5 bg-[#AE8ADD] rounded-full animate-bounce [animation-delay:-0.3s]" />
-                  <span className="w-1.5 h-1.5 bg-[#AE8ADD] rounded-full animate-bounce [animation-delay:-0.15s]" />
-                  <span className="w-1.5 h-1.5 bg-[#AE8ADD] rounded-full animate-bounce" />
+                <span className="inline-flex gap-1 items-center text-lm-muted">
+                  <span className="w-1.5 h-1.5 bg-lm-lilac rounded-full animate-bounce [animation-delay:-0.3s]" />
+                  <span className="w-1.5 h-1.5 bg-lm-lilac rounded-full animate-bounce [animation-delay:-0.15s]" />
+                  <span className="w-1.5 h-1.5 bg-lm-lilac rounded-full animate-bounce" />
                 </span>
               )}
             </div>

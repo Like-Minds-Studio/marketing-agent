@@ -170,8 +170,8 @@ export default function StrategyTab({ davidContext }: Props) {
       <div className="max-w-3xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-6">
-          <h2 className="text-xl font-bold text-[#F0EDE4] tracking-tight mb-1">Strategy Session</h2>
-          <p className="text-sm text-white/40">
+          <h2 className="text-xl font-bold text-lm-bone tracking-tight mb-1">Strategy Session</h2>
+          <p className="text-sm text-lm-muted">
             CEO-level advisory. Pick a prompt or type your own — get a structured recommendation, not just information.
           </p>
         </div>
@@ -186,8 +186,8 @@ export default function StrategyTab({ davidContext }: Props) {
                 onClick={() => setActiveCategory(cat.id)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${
                   activeCategory === cat.id
-                    ? 'bg-[#AE8ADD]/15 border-[#AE8ADD]/40 text-[#AE8ADD]'
-                    : 'bg-white/5 border-white/10 text-white/40 hover:text-white/60 hover:border-white/20'
+                    ? 'bg-lm-lilac/15 border-lm-lilac/40 text-lm-lilac'
+                    : 'bg-lm-bone/5 border-lm-bone/10 text-lm-muted hover:text-lm-warm hover:border-lm-bone/20'
                 }`}
               >
                 {cat.label}
@@ -203,8 +203,8 @@ export default function StrategyTab({ davidContext }: Props) {
                 onClick={() => selectChip(chip.prompt)}
                 className={`text-left text-sm px-4 py-3 rounded-xl border transition-all duration-150 ${
                   input === chip.prompt
-                    ? 'bg-[#AE8ADD]/10 border-[#AE8ADD]/40 text-white/90'
-                    : 'bg-white/3 border-white/8 text-white/50 hover:text-white/80 hover:bg-white/8 hover:border-white/20'
+                    ? 'bg-lm-lilac/10 border-lm-lilac/40 text-lm-bone/90'
+                    : 'bg-lm-bone/4 border-lm-bone/8 text-lm-warm hover:text-lm-bone hover:bg-lm-bone/8 hover:border-lm-bone/20'
                 }`}
               >
                 {chip.label}
@@ -214,7 +214,7 @@ export default function StrategyTab({ davidContext }: Props) {
         </div>
 
         {/* Input */}
-        <div className="bg-white/3 border border-white/10 focus-within:border-[#AE8ADD]/40 rounded-2xl px-4 py-3 transition-colors mb-4">
+        <div className="bg-lm-bone/4 border border-lm-bone/10 focus-within:border-lm-lilac/40 rounded-2xl px-4 py-3 transition-colors mb-4">
           <textarea
             ref={textareaRef}
             value={input}
@@ -223,14 +223,14 @@ export default function StrategyTab({ davidContext }: Props) {
             placeholder="Select a prompt above or type your strategic question…"
             rows={3}
             disabled={loading}
-            className="w-full bg-transparent text-sm text-white placeholder-white/20 resize-none focus:outline-none leading-relaxed"
+            className="w-full bg-transparent text-sm text-lm-bone placeholder-lm-muted/60 resize-none focus:outline-none leading-relaxed"
           />
-          <div className="flex justify-between items-center mt-2 pt-2 border-t border-white/5">
-            <p className="text-[11px] text-white/20">Prompts with [brackets] — replace with your specifics before sending</p>
+          <div className="flex justify-between items-center mt-2 pt-2 border-t border-lm-bone/5">
+            <p className="text-[11px] text-lm-muted">Prompts with [brackets] — replace with your specifics before sending</p>
             {loading ? (
               <button
                 onClick={handleStop}
-                className="flex items-center gap-1.5 px-4 py-2 bg-white/10 hover:bg-white/15 rounded-xl text-xs text-white/60 transition-colors"
+                className="flex items-center gap-1.5 px-4 py-2 bg-lm-bone/10 hover:bg-lm-bone/12 rounded-xl text-xs text-lm-warm transition-colors"
               >
                 <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
                   <rect x="6" y="6" width="12" height="12" rx="1" />
@@ -241,7 +241,7 @@ export default function StrategyTab({ davidContext }: Props) {
               <button
                 onClick={generate}
                 disabled={!input.trim()}
-                className="flex items-center gap-1.5 px-4 py-2 bg-[#AE8ADD] hover:bg-[#C4A3E8] disabled:bg-white/10 disabled:cursor-not-allowed rounded-xl text-xs font-semibold text-black disabled:text-white/30 transition-colors"
+                className="flex items-center gap-1.5 px-4 py-2 bg-lm-lilac hover:bg-[#C4A3E8] disabled:bg-lm-bone/10 disabled:cursor-not-allowed rounded-xl text-xs font-semibold text-black disabled:text-lm-muted transition-colors"
               >
                 Get Advice
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
@@ -256,33 +256,33 @@ export default function StrategyTab({ davidContext }: Props) {
         {(output || loading) && (
           <div className="mt-2">
             <div className="flex items-center gap-2 mb-3">
-              <div className="w-5 h-5 bg-[#AE8ADD]/15 border border-[#AE8ADD]/30 rounded flex items-center justify-center">
-                <span className="text-[8px] font-black text-[#AE8ADD]">LM</span>
+              <div className="w-5 h-5 bg-lm-lilac/15 border border-lm-lilac/30 rounded flex items-center justify-center">
+                <span className="text-[8px] font-black text-lm-lilac">LM</span>
               </div>
-              <span className="text-xs font-medium text-white/40 uppercase tracking-widest">
+              <span className="text-xs font-medium text-lm-muted uppercase tracking-widest">
                 {loading ? 'Analysing…' : 'Advisory'}
               </span>
             </div>
 
-            <div className="bg-white/3 border border-white/10 rounded-2xl px-6 py-5">
+            <div className="bg-lm-bone/4 border border-lm-bone/10 rounded-2xl px-6 py-5">
               {output ? (
                 <div className="prose prose-invert prose-sm max-w-none
-                  prose-headings:font-bold prose-headings:text-[#F0EDE4] prose-headings:mt-5 prose-headings:mb-2
+                  prose-headings:font-bold prose-headings:text-lm-bone prose-headings:mt-5 prose-headings:mb-2
                   prose-h1:text-lg prose-h2:text-base prose-h3:text-sm
-                  prose-p:text-white/80 prose-p:my-2 prose-p:leading-relaxed
-                  prose-strong:text-[#F0EDE4]
-                  prose-ul:text-white/80 prose-ol:text-white/80 prose-li:my-1
-                  prose-hr:border-white/10
-                  prose-code:text-[#AE8ADD] prose-code:bg-white/5 prose-code:px-1 prose-code:rounded
-                  prose-blockquote:border-[#AE8ADD] prose-blockquote:text-white/60
-                  prose-a:text-[#AE8ADD]">
+                  prose-p:text-lm-bone/80 prose-p:my-2 prose-p:leading-relaxed
+                  prose-strong:text-lm-bone
+                  prose-ul:text-lm-bone/80 prose-ol:text-lm-bone/80 prose-li:my-1
+                  prose-hr:border-lm-bone/10
+                  prose-code:text-lm-lilac prose-code:bg-lm-bone/5 prose-code:px-1 prose-code:rounded
+                  prose-blockquote:border-lm-lilac prose-blockquote:text-lm-warm
+                  prose-a:text-lm-lilac">
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>{output}</ReactMarkdown>
                 </div>
               ) : (
-                <span className="inline-flex gap-1 items-center text-white/40">
-                  <span className="w-1.5 h-1.5 bg-[#AE8ADD] rounded-full animate-bounce [animation-delay:-0.3s]" />
-                  <span className="w-1.5 h-1.5 bg-[#AE8ADD] rounded-full animate-bounce [animation-delay:-0.15s]" />
-                  <span className="w-1.5 h-1.5 bg-[#AE8ADD] rounded-full animate-bounce" />
+                <span className="inline-flex gap-1 items-center text-lm-muted">
+                  <span className="w-1.5 h-1.5 bg-lm-lilac rounded-full animate-bounce [animation-delay:-0.3s]" />
+                  <span className="w-1.5 h-1.5 bg-lm-lilac rounded-full animate-bounce [animation-delay:-0.15s]" />
+                  <span className="w-1.5 h-1.5 bg-lm-lilac rounded-full animate-bounce" />
                 </span>
               )}
             </div>
