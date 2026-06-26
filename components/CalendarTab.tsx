@@ -66,6 +66,14 @@ Format each day clearly with a horizontal rule separator between days.`)
   return lines.join('\n')
 }
 
+function extractMemory(userMessage: string, assistantMessage: string) {
+  fetch('/api/memory/extract', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userMessage, assistantMessage }),
+  }).catch(() => {})
+}
+
 async function saveConversation(title: string, messages: { role: 'user' | 'assistant'; content: string }[]) {
   const id = Date.now().toString(36) + Math.random().toString(36).slice(2)
   try {
@@ -136,6 +144,7 @@ export default function CalendarTab({ davidContext, onSave }: Props) {
         { role: 'user', content: prompt },
         { role: 'assistant', content: accumulated },
       ])
+      if (accumulated.length > 100) extractMemory('Content calendar for ' + weekLabel + (focus ? ', focus: ' + focus : ''), accumulated)
       onSave?.()
     } catch (err) {
       if ((err as Error).name === 'AbortError') return

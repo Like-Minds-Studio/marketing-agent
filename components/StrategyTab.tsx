@@ -90,6 +90,14 @@ Numbered list. Concrete. Each one completable in a single week.
 
 David's question: `
 
+function extractMemory(userMessage: string, assistantMessage: string) {
+  fetch('/api/memory/extract', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userMessage, assistantMessage }),
+  }).catch(() => {})
+}
+
 async function saveConversation(title: string, messages: { role: 'user' | 'assistant'; content: string }[]) {
   const id = Date.now().toString(36) + Math.random().toString(36).slice(2)
   try {
@@ -158,6 +166,7 @@ export default function StrategyTab({ davidContext, onSave }: Props) {
         { role: 'user', content: input.trim() },
         { role: 'assistant', content: accumulated },
       ])
+      if (accumulated.length > 100) extractMemory(input.trim(), accumulated)
       onSave?.()
     } catch (err) {
       if ((err as Error).name === 'AbortError') return
