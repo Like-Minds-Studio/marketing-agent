@@ -132,6 +132,95 @@ Hurricane's, The Gantry, Charlotte, Folk, Brooksy, Longshore, Home Croissanterie
 
 ---
 
+## CURRENT STATE (data extracted June 2026, financial data to January 2026)
+
+### FY26 Financial Position
+
+**Annual target:** $2,010,000 ex GST. Monthly target: $167,500. Monthly breakeven: $138,667.
+
+**YTD revenue (July 2025 to January 2026, 7 months):**
+
+| Month | Revenue (ex GST) |
+|---|---|
+| July 2025 | $91,902 |
+| August 2025 | $118,909 |
+| September 2025 | $125,544 |
+| October 2025 | $134,149 |
+| November 2025 | $57,542 |
+| December 2025 | $150,781 |
+| January 2026 | $98,197 |
+| YTD Total | $777,024 |
+
+**Gap:** $1,232,976 remaining with 5 months left (February to June 2026). Required monthly average to hit target: $246,595, which is 47% above the monthly target and has never been achieved in the YTD period. The $2,010,000 target is almost certainly unachievable on design fees alone. Realistic FY26 design revenue outcome: $1.2M to $1.5M, consistent with FY25, unless procurement, styling, and master planning revenue streams begin materialising.
+
+**FY25 actuals for calibration:** Total design revenue $1,149,845. Average monthly $95,820. Average job size $44,164. Net margin 0.9% on total trading income of $1,044,812. Fixed overheads FY26 budget: $1,309,000. Budgeted wages: $750,000. Profit target: $500,000.
+
+**Open financial item:** A $48,762 credit reversal from Suzhou Function Group (Elements Bar and Grill) appeared in October 2025 P&L. Cause unconfirmed. This was one of the larger FY25 engagements at $73,269. Reason for reversal should be confirmed with David before treating FY26 figures as clean.
+
+### Active Projects (as at October 2025 invoicing data)
+
+**Crowne Plaza Burwood** — Goldberg International Holdings. Hotel F&B, Burwood. Payment A $36,364 invoiced 30 Oct 2025. Implied total fee approximately $181,820 ex GST. Largest single active engagement. Multi-zone hotel F&B. Proposal dated September 2025. Fee Basis one-pager required per Section 16.1. Early delivery phase.
+
+**Razorback Inn** — Nick Davlouros (nick@flyingpigscreative.com.au, 02 4231 4345). Historic inn redevelopment, 1580 Remembrance Driveway, Razorback near Picton NSW 2571. Three fee scenarios: $88,450 / $57,520 / $49,330 ex GST. Scope includes bakery, historic inn, bridal suite, accommodation, barn event space, circulation. Project start Oct 2025, end June 2026. Payment A likely not yet issued. WIP tracker not populated. Critical action: confirm which scope was signed, issue Payment A.
+
+**All'Antico Bondi** — Jonny Stewart (jonny.stewart@protonmail.com) and Ali Mattar (mattar.ali@gmail.com). Italian sandwich bar concept (All'Antico Vinaio from Florence), Westfield Bondi Junction Level 6, approximately 65 sqm. Fee: $50,782.50 ex GST. Cost plan: $485,800 ex GST. Landlord: Scentre Group (Westfield). Payment A ($17,773.50 ex GST) likely not yet issued. Critical action: issue Payment A, confirm CDC pathway with Westfield RDM, begin site measure and HOA review. If All'Antico rolls out multiple Australian sites, this is a significant rollout account.
+
+**South Steyne, Manly** — Northern Hospitality Pty Ltd. Restaurant/bar. Payment A $29,318 issued Oct 2025. Implied fee approximately $83,766 ex GST. Early delivery, concept phase.
+
+**Amuro (Oxford/Foley, Surry Hills)** — Gogo Dining Group Pty Ltd. Restaurant. Payment A $20,541 issued Oct 2025. Implied fee approximately $58,688 ex GST. Early delivery, concept phase.
+
+**Sonoma Rosebay** — Sonoma Baking Company Pty Ltd. Bakery café, Rosebay. Payment B $27,488 issued Oct 2025. Implied fee approximately $78,537 ex GST. Developed design underway. Second confirmed Sonoma site after Alexandria. Manage as rollout preferred partner account.
+
+**Banksia Bakehouse** — Botanics Food Group Pty Ltd. Bakery. Payment B $19,320 issued Oct 2025. Developed design underway.
+
+**Bouillon L'Entrecote Expansion** — Restaurant expansion. Payment B $10,573 issued Oct 2025. Developed design underway.
+
+**Cross Section, Bondi** — CS Bondi J Pty Ltd. Restaurant. Payment C $5,455 issued Oct 2025. Construction documentation phase.
+
+**Roslyn Packer Theatre Bar** — Sydney Theatre Company Ltd. Theatre bar, Walsh Bay/CBD. Payment D $6,675 issued Oct 2025. At CDC/DA lodgement. Near construction commencement.
+
+**North Strathfield Steakhouse** — Global Restaurant Brands. Payment D $3,103 issued Oct 2025. At or past CDC/DA lodgement. Global Restaurant Brands is a group operator profile worth monitoring for future rollout work.
+
+**Stitch Fishmarket** — ECRE Pty Ltd. Variation, late-stage construction admin.
+
+**Bar Sapora** — Gehlot Pty Ltd. Retainer at $150/hr. Four payments visible. Ongoing advisory.
+
+**9 Foremans Road, Woodhill** — Danny Gilligan. Rural concept package, $12,000 ex GST delivered as standalone. Credits against full engagement if client proceeds.
+
+**Honeysuckle Drive, Newcastle** — S & A Holdings Pty Ltd. Variation, construction admin.
+
+### Key Relationships
+
+**Sonoma Baking Company** — Multi-site rollout client. Alexandria (FY25, $26,140) and Rosebay (active, implied $78,537). Third site may be in pipeline. Manage as preferred partner account with cross-site fee structure.
+
+**Goldberg International Holdings (Crowne Plaza Burwood)** — Highest-fee active client at approximately $181,820. Hotel and property development profile. If they hold additional assets, this is a portfolio relationship in formation. Confirm whether other properties exist.
+
+**All'Antico / Jonny Stewart and Ali Mattar** — International sandwich bar concept entering Australian market. Westfield Bondi Junction. If the brand rolls out nationally, this is a multi-site account of significant scale.
+
+**Gogo Dining Group** — Just signed for Amuro. Restaurant group profile. Monitor for additional sites.
+
+**Global Restaurant Brands** — Group operator (name implies multiple brands). At final payment on North Strathfield Steakhouse. Worth a conversation about what else is in their pipeline.
+
+**Sydney Theatre Company** — Institutional client at final stage. Repeat potential across venue bars, event spaces, theatre refurbishments. Reputational value.
+
+**Bouillon L'Entrecote** — European-style bistro operator. Expansion project underway. Design-forward operator profile.
+
+**Nick Davlouros / Flying Pigs Creative** — Creative professional developing rural hospitality property. Likely well-networked in hospitality and creative circles.
+
+**Bar Sapora / Gehlot Pty Ltd** — Retainer client. Recurring revenue relationship to protect.
+
+### Partner Details (confirmed from files)
+
+**Table One:** Partner in the studio ecosystem offering 10% discount on Hospitality Launch Support to Like Minds clients. Contact details and full service description not in extracted files. Confirm with David.
+
+**No Filter:** Brand and media partner with existing commercial arrangement. 10% discount on Launch Video and Brand Strategy. Active workstream decision pending: whether to engage as paid partner for Instagram/Meta ads work or execute in-house. Contact details not in extracted files.
+
+**AZB Sourcery:** Procurement partner. Alex (full surname and formal title to confirm with David). Referenced in P&L as design cost line item. Covers FF&E procurement at group rates. Contact and margin structure to confirm.
+
+**Buterin Lestrange:** Builder partner. Provides build credits and ECI with no deposit as standard client incentive. Contact name and specific commercial terms to confirm with David.
+
+---
+
 ## FEE METHODOLOGY
 
 Fees are calculated bottom-up from hours and locked hourly rates. Lump-sum quoting without underlying calculation is not acceptable.
