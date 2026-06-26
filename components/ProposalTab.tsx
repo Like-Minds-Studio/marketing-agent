@@ -149,6 +149,35 @@ export default function ProposalTab({ davidContext, onSave }: Props) {
     await navigator.clipboard.writeText(output)
   }
 
+  function printProposal() {
+    const el = document.getElementById('proposal-output')
+    if (!el) return
+    const w = window.open('', '_blank')
+    if (!w) return
+    w.document.write(`<!DOCTYPE html><html><head>
+      <title>Like Minds Studio — ${fields.client}</title>
+      <meta charset="utf-8">
+      <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Georgia, 'Times New Roman', serif; max-width: 740px; margin: 48px auto; color: #111; line-height: 1.75; font-size: 15px; }
+        h1 { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 26px; font-weight: 800; margin: 40px 0 12px; color: #000; letter-spacing: -0.02em; }
+        h2 { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 18px; font-weight: 700; margin: 32px 0 8px; color: #111; }
+        h3 { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 13px; font-weight: 700; margin: 20px 0 6px; text-transform: uppercase; letter-spacing: 0.1em; color: #555; }
+        p { margin: 12px 0; }
+        strong { font-weight: 700; color: #000; }
+        ul, ol { margin: 12px 0 12px 24px; }
+        li { margin: 5px 0; }
+        hr { border: none; border-top: 1px solid #e0e0e0; margin: 32px 0; }
+        a { color: #111; }
+        @media print { @page { margin: 24mm; } body { margin: 0; max-width: 100%; } }
+      </style>
+    </head><body>
+      ${el.innerHTML}
+      <script>window.addEventListener('load', function() { setTimeout(function() { window.print() }, 200) })<\/script>
+    </body></html>`)
+    w.document.close()
+  }
+
   const canGenerate = fields.client.trim() && fields.concept.trim() && fields.location.trim()
 
   return (
@@ -311,21 +340,32 @@ export default function ProposalTab({ davidContext, onSave }: Props) {
                 {loading ? 'Generating…' : 'Proposal Draft'}
               </span>
               {output && !loading && (
-                <button
-                  onClick={copyToClipboard}
-                  className="flex items-center gap-1.5 text-xs text-lm-muted hover:text-lm-warm transition-colors px-3 py-1 rounded-lg hover:bg-lm-bone/5"
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                  </svg>
-                  Copy
-                </button>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={printProposal}
+                    className="flex items-center gap-1.5 text-xs text-lm-muted hover:text-lm-warm transition-colors px-3 py-1 rounded-lg hover:bg-lm-bone/5"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                    </svg>
+                    PDF
+                  </button>
+                  <button
+                    onClick={copyToClipboard}
+                    className="flex items-center gap-1.5 text-xs text-lm-muted hover:text-lm-warm transition-colors px-3 py-1 rounded-lg hover:bg-lm-bone/5"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    Copy
+                  </button>
+                </div>
               )}
             </div>
 
             <div className="bg-lm-bone/4 border border-lm-bone/10 rounded-2xl px-6 py-5">
               {output ? (
-                <div className="prose prose-invert prose-sm max-w-none
+                <div id="proposal-output" className="prose prose-invert prose-sm max-w-none
                   prose-headings:font-bold prose-headings:text-lm-bone prose-headings:mt-5 prose-headings:mb-2
                   prose-h1:text-lg prose-h2:text-base prose-h3:text-sm
                   prose-p:text-lm-bone/80 prose-p:my-2 prose-p:leading-relaxed

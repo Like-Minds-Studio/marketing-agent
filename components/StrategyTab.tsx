@@ -68,6 +68,27 @@ const CATEGORIES: Category[] = [
       { label: 'PR and media strategy', prompt: "How do I get Like Minds and David Veksler into the hospitality trade press and mainstream business media? What's the story and who should I be talking to?" },
     ],
   },
+  {
+    id: 'tableone',
+    label: 'Table One',
+    chips: [
+      { label: 'Revenue performance', prompt: 'Walk me through how Table One is performing against its revenue targets. What are the key levers I should be pulling right now?' },
+      { label: 'Ops bottleneck', prompt: "What's the biggest operational bottleneck at Table One right now? Help me diagnose it and give me a fix I can implement this week." },
+      { label: 'Team and hiring', prompt: 'Do I have the right team structure for Table One at this stage? Who is the next critical hire and how should I think about the role?' },
+      { label: 'Growth vs. profitability', prompt: 'Should Table One be focused on growth or profitability right now? Help me make the call given where the business is.' },
+      { label: 'BD and pipeline', prompt: "How should I be building Table One's client pipeline? What's the most efficient path to more revenue given current capacity?" },
+    ],
+  },
+  {
+    id: 'nofilter',
+    label: 'No Filter',
+    chips: [
+      { label: 'Business model clarity', prompt: 'Help me get clear on the No Filter business model. What is it really selling, who is the core customer, and what should the revenue engine look like?' },
+      { label: 'Position in the market', prompt: 'How should No Filter be positioned in the market? What does it need to own to stand out and win?' },
+      { label: 'Prioritise this quarter', prompt: "What should No Filter be focused on this quarter? Help me cut through the noise and identify the 2-3 things that will actually move the needle." },
+      { label: 'Resource allocation', prompt: 'How much of my time and capital should I be putting into No Filter right now vs. Like Minds and Table One? Help me think through the allocation.' },
+    ],
+  },
 ]
 
 const STRATEGY_FRAMING = `[STRATEGIC ADVISORY REQUEST]
