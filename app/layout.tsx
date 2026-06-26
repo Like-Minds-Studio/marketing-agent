@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Like Minds Marketing AI",
-  description: "AI-powered marketing analysis — website audits, copy optimization, email sequences, and competitive intelligence.",
+  title: "Like Minds Studio — Marketing AI",
+  description: "AI-powered marketing assistant for Like Minds Studio. Built for David Veksler.",
 };
 
 export default function RootLayout({
