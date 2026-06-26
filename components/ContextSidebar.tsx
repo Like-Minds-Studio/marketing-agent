@@ -12,6 +12,12 @@ const PLACEHOLDER = `What's on your mind right now? E.g.:
 • Trying to reduce reliance on referrals, build inbound through LinkedIn
 • Revenue target: $4M by end of FY26`
 
+interface MemoryRow {
+  id: string
+  content: string
+  created_at: string
+}
+
 interface Props {
   open: boolean
   onClose: () => void
@@ -22,8 +28,20 @@ interface Props {
 export default function ContextSidebar({ open, onClose, value, onChange }: Props) {
   const [draft, setDraft] = useState(value)
   const [saved, setSaved] = useState(false)
+  const [memories, setMemories] = useState<MemoryRow[]>([])
+  const [memoriesLoading, setMemoriesLoading] = useState(false)
 
   useEffect(() => { setDraft(value) }, [value, open])
+
+  useEffect(() => {
+    if (!open) return
+    setMemoriesLoading(true)
+    fetch('/api/memory')
+      .then((r) => r.json())
+      .then((data) => setMemories(Array.isArray(data) ? data : []))
+      .catch(() => setMemories([]))
+      .finally(() => setMemoriesLoading(false))
+  }, [open])
 
   function save() {
     onChange(draft)
@@ -36,6 +54,17 @@ export default function ContextSidebar({ open, onClose, value, onChange }: Props
     setDraft('')
     onChange('')
     localStorage.removeItem(STORAGE_KEY)
+  }
+
+  async function deleteMemory(id: string) {
+    setMemories((prev) => prev.filter((m) => m.id !== id))
+    try {
+      await fetch('/api/memory', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      })
+    } catch {}
   }
 
   const hasContent = draft.trim().length > 0
@@ -67,16 +96,66 @@ export default function ContextSidebar({ open, onClose, value, onChange }: Props
           </div>
         )}
 
-        <div className="flex-1 p-4 min-h-0">
-          <textarea
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            placeholder={PLACEHOLDER}
-            className="w-full h-full bg-lm-bone/4 border border-lm-bone/10 focus:border-lm-lilac/35 rounded-xl px-4 py-3 text-sm text-lm-bone/85 placeholder-lm-muted/50 focus:outline-none transition-colors resize-none leading-relaxed"
-          />
+        <div className="flex-1 overflow-y-auto flex flex-col min-h-0">
+          {/* Session context textarea */}
+          <div className="p-4 flex flex-col" style={{ minHeight: '200px' }}>
+            <p className="text-[11px] font-medium text-lm-warm mb-2 uppercase tracking-wider">Session notes</p>
+            <textarea
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              placeholder={PLACEHOLDER}
+              className="flex-1 bg-lm-bone/4 border border-lm-bone/10 focus:border-lm-lilac/35 rounded-xl px-4 py-3 text-sm text-lm-bone/85 placeholder-lm-muted/50 focus:outline-none transition-colors resize-none leading-relaxed"
+              style={{ minHeight: '160px' }}
+            />
+          </div>
+
+          {/* Remembered section */}
+          <div className="px-4 pb-4">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-[11px] font-medium text-lm-warm uppercase tracking-wider">Remembered</p>
+              {memories.length > 0 && (
+                <span className="text-[10px] text-lm-muted">{memories.length} fact{memories.length !== 1 ? 's' : ''}</span>
+              )}
+            </div>
+
+            {memoriesLoading ? (
+              <div className="flex items-center gap-2 py-3">
+                <span className="w-1.5 h-1.5 bg-lm-muted rounded-full animate-pulse" />
+                <span className="text-[11px] text-lm-muted">Loading memories…</span>
+              </div>
+            ) : memories.length === 0 ? (
+              <div className="bg-lm-bone/3 border border-lm-bone/8 rounded-xl px-3 py-3">
+                <p className="text-[11px] text-lm-muted leading-relaxed">
+                  Facts the AI picks up from your chats will appear here — deal statuses, priorities, decisions.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                {memories.map((m) => (
+                  <div key={m.id} className="group flex items-start gap-2 bg-lm-bone/3 border border-lm-bone/8 hover:border-lm-bone/15 rounded-xl px-3 py-2.5 transition-colors">
+                    <span className="w-1 h-1 bg-lm-lilac/60 rounded-full shrink-0 mt-1.5" />
+                    <p className="flex-1 text-[11px] text-lm-bone/75 leading-relaxed">{m.content}</p>
+                    <button
+                      onClick={() => deleteMemory(m.id)}
+                      className="shrink-0 opacity-0 group-hover:opacity-100 w-5 h-5 flex items-center justify-center rounded text-lm-muted hover:text-lm-fire transition-all"
+                      title="Forget this"
+                    >
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {memories.length > 0 && (
+              <p className="text-[10px] text-lm-muted/50 mt-2 text-center">These are injected into every AI request</p>
+            )}
+          </div>
         </div>
 
-        <div className="shrink-0 px-4 pb-4 flex items-center gap-2">
+        <div className="shrink-0 px-4 pb-4 flex items-center gap-2 border-t border-lm-bone/8 pt-3">
           {hasContent && (
             <button onClick={clear} className="text-xs text-lm-muted hover:text-lm-warm transition-colors px-3 py-2 rounded-lg hover:bg-lm-bone/5">
               Clear
@@ -96,7 +175,7 @@ export default function ContextSidebar({ open, onClose, value, onChange }: Props
         </div>
 
         <div className="shrink-0 px-4 pb-4">
-          <p className="text-[10px] text-lm-muted/60 text-center leading-relaxed">Stored in your browser only. Update anytime.</p>
+          <p className="text-[10px] text-lm-muted/60 text-center leading-relaxed">Session notes stored in your browser. Memories synced to cloud.</p>
         </div>
       </div>
     </>

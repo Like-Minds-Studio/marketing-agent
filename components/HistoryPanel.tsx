@@ -21,16 +21,50 @@ function formatDate(iso: string): string {
   return d.toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })
 }
 
+async function fetchFromSupabase(): Promise<SavedConversation[] | null> {
+  try {
+    const res = await fetch('/api/conversations')
+    if (!res.ok) return null
+    const data = await res.json()
+    return data.map((row: { id: string; title: string; messages: SavedConversation['messages']; updated_at: string; created_at: string }) => ({
+      id: row.id,
+      title: row.title,
+      messages: row.messages,
+      updatedAt: row.updated_at,
+      createdAt: row.created_at,
+    }))
+  } catch {
+    return null
+  }
+}
+
+async function deleteFromSupabase(id: string) {
+  try {
+    await fetch(`/api/conversations/${id}`, { method: 'DELETE' })
+  } catch {}
+}
+
 export default function HistoryPanel({ open, onClose, onLoad, refreshTrigger }: Props) {
   const [conversations, setConversations] = useState<SavedConversation[]>([])
+  const [source, setSource] = useState<'cloud' | 'local'>('local')
 
   useEffect(() => {
-    setConversations(loadConversations())
+    if (!open) return
+    fetchFromSupabase().then((remote) => {
+      if (remote) {
+        setConversations(remote)
+        setSource('cloud')
+      } else {
+        setConversations(loadConversations())
+        setSource('local')
+      }
+    })
   }, [open, refreshTrigger])
 
   function handleDelete(e: React.MouseEvent, id: string) {
     e.stopPropagation()
     deleteConversation(id)
+    deleteFromSupabase(id)
     setConversations((prev) => prev.filter((c) => c.id !== id))
   }
 
@@ -40,7 +74,12 @@ export default function HistoryPanel({ open, onClose, onLoad, refreshTrigger }: 
 
       <div className={`fixed top-0 left-0 h-full w-72 bg-lm-surface border-r border-lm-bone/8 z-30 flex flex-col transition-transform duration-300 ease-in-out ${open ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="flex items-center justify-between px-4 py-4 border-b border-lm-bone/8 shrink-0">
-          <span className="text-sm font-semibold text-lm-bone tracking-wide">Chat History</span>
+          <div>
+            <span className="text-sm font-semibold text-lm-bone tracking-wide">Chat History</span>
+            <span className={`ml-2 text-[10px] px-1.5 py-0.5 rounded-full ${source === 'cloud' ? 'bg-lm-lilac/15 text-lm-lilac' : 'bg-lm-bone/8 text-lm-muted'}`}>
+              {source === 'cloud' ? 'Cloud' : 'Local'}
+            </span>
+          </div>
           <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg text-lm-muted hover:text-lm-bone hover:bg-lm-bone/8 transition-colors">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -80,7 +119,9 @@ export default function HistoryPanel({ open, onClose, onLoad, refreshTrigger }: 
         </div>
 
         <div className="shrink-0 border-t border-lm-bone/8 px-4 py-3">
-          <p className="text-[11px] text-lm-muted text-center">Saved in this browser · Up to 50 sessions</p>
+          <p className="text-[11px] text-lm-muted text-center">
+            {source === 'cloud' ? 'Synced across devices via cloud' : 'Saved in this browser only'}
+          </p>
         </div>
       </div>
     </>

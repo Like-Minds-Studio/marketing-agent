@@ -6,6 +6,25 @@ import remarkGfm from 'remark-gfm'
 import { Message, SavedConversation } from '@/lib/types'
 import { upsertConversation, generateId } from '@/lib/storage'
 
+async function saveToSupabase(id: string, title: string, messages: Message[]) {
+  try {
+    await fetch('/api/conversations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, title, messages }),
+    })
+  } catch {}
+}
+
+function extractMemory(userMessage: string, assistantMessage: string) {
+  // Fire-and-forget — never awaited
+  fetch('/api/memory/extract', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userMessage, assistantMessage }),
+  }).catch(() => {})
+}
+
 const STARTER_PROMPTS = [
   'Write a LinkedIn post about our multi-site rollout expertise',
   'Create 5 Instagram captions for our Go-Getter audience',
@@ -49,7 +68,9 @@ export default function ChatTab({ pendingConversation, onPendingLoaded, onSave, 
       const title = firstUser
         ? firstUser.content.slice(0, 60) + (firstUser.content.length > 60 ? '…' : '')
         : 'Untitled'
+      // Save locally (instant) + Supabase (cross-device)
       upsertConversation({ id, title, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), messages: msgs })
+      saveToSupabase(id, title, msgs)
       onSave()
     },
     [onSave]
@@ -102,6 +123,10 @@ export default function ChatTab({ pendingConversation, onPendingLoaded, onSave, 
         setMessages([...newMessages, { role: 'assistant', content: accumulated }])
       }
       persist([...newMessages, { role: 'assistant', content: accumulated }], conversationId)
+      // Background memory extraction — fire and forget
+      if (accumulated.length > 100) {
+        extractMemory(text.trim(), accumulated)
+      }
     } catch (err) {
       if ((err as Error).name === 'AbortError') return
       setMessages([...newMessages, { role: 'assistant', content: 'Something went wrong. Please try again.' }])
