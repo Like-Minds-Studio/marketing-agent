@@ -90,9 +90,20 @@ Numbered list. Concrete. Each one completable in a single week.
 
 David's question: `
 
-interface Props { davidContext: string }
+async function saveConversation(title: string, messages: { role: 'user' | 'assistant'; content: string }[]) {
+  const id = Date.now().toString(36) + Math.random().toString(36).slice(2)
+  try {
+    await fetch('/api/conversations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, title, messages }),
+    })
+  } catch {}
+}
 
-export default function StrategyTab({ davidContext }: Props) {
+interface Props { davidContext: string; onSave?: () => void }
+
+export default function StrategyTab({ davidContext, onSave }: Props) {
   const [activeCategory, setActiveCategory] = useState('growth')
   const [input, setInput] = useState('')
   const [output, setOutput] = useState('')
@@ -143,6 +154,11 @@ export default function StrategyTab({ davidContext }: Props) {
         accumulated += decoder.decode(value, { stream: true })
         setOutput(accumulated)
       }
+      saveConversation('[Strategy] ' + input.trim().slice(0, 55), [
+        { role: 'user', content: input.trim() },
+        { role: 'assistant', content: accumulated },
+      ])
+      onSave?.()
     } catch (err) {
       if ((err as Error).name === 'AbortError') return
       setOutput('Something went wrong. Please try again.')

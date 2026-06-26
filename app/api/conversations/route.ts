@@ -10,7 +10,7 @@ export async function GET() {
 
   const { data, error } = await supabase
     .from('conversations')
-    .select('id, title, created_at, updated_at')
+    .select('*')
     .order('updated_at', { ascending: false })
     .limit(50)
 

@@ -53,9 +53,20 @@ Write in the Like Minds brand voice throughout: sophisticated but approachable, 
   return lines.join('\n')
 }
 
-interface Props { davidContext: string }
+async function saveConversation(title: string, messages: { role: 'user' | 'assistant'; content: string }[]) {
+  const id = Date.now().toString(36) + Math.random().toString(36).slice(2)
+  try {
+    await fetch('/api/conversations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, title, messages }),
+    })
+  } catch {}
+}
 
-export default function ProposalTab({ davidContext }: Props) {
+interface Props { davidContext: string; onSave?: () => void }
+
+export default function ProposalTab({ davidContext, onSave }: Props) {
   const [fields, setFields] = useState({
     client: '',
     concept: '',
@@ -107,6 +118,11 @@ export default function ProposalTab({ davidContext }: Props) {
         accumulated += decoder.decode(value, { stream: true })
         setOutput(accumulated)
       }
+      saveConversation('[Proposal] ' + fields.client.trim().slice(0, 52), [
+        { role: 'user', content: prompt },
+        { role: 'assistant', content: accumulated },
+      ])
+      onSave?.()
     } catch (err) {
       if ((err as Error).name === 'AbortError') return
       setOutput('Something went wrong. Please try again.')

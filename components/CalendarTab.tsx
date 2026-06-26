@@ -66,9 +66,20 @@ Format each day clearly with a horizontal rule separator between days.`)
   return lines.join('\n')
 }
 
-interface Props { davidContext: string }
+async function saveConversation(title: string, messages: { role: 'user' | 'assistant'; content: string }[]) {
+  const id = Date.now().toString(36) + Math.random().toString(36).slice(2)
+  try {
+    await fetch('/api/conversations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, title, messages }),
+    })
+  } catch {}
+}
 
-export default function CalendarTab({ davidContext }: Props) {
+interface Props { davidContext: string; onSave?: () => void }
+
+export default function CalendarTab({ davidContext, onSave }: Props) {
   const [weekStart, setWeekStart] = useState('')
   const [audience, setAudience] = useState(AUDIENCE_OPTIONS[0])
   const [platforms, setPlatforms] = useState<string[]>(['Instagram', 'LinkedIn'])
@@ -120,6 +131,12 @@ export default function CalendarTab({ davidContext }: Props) {
         accumulated += decoder.decode(value, { stream: true })
         setOutput(accumulated)
       }
+      const weekLabel = weekStart || 'week'
+      saveConversation('[Calendar] ' + weekLabel + (focus ? ' — ' + focus.slice(0, 35) : ''), [
+        { role: 'user', content: prompt },
+        { role: 'assistant', content: accumulated },
+      ])
+      onSave?.()
     } catch (err) {
       if ((err as Error).name === 'AbortError') return
       setOutput('Something went wrong. Please try again.')

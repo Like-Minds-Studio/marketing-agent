@@ -164,9 +164,20 @@ function SlideCard({
   )
 }
 
-interface Props { davidContext: string }
+async function saveConversation(title: string, messages: { role: 'user' | 'assistant'; content: string }[]) {
+  const id = Date.now().toString(36) + Math.random().toString(36).slice(2)
+  try {
+    await fetch('/api/conversations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, title, messages }),
+    })
+  } catch {}
+}
 
-export default function VisualsTab({ davidContext }: Props) {
+interface Props { davidContext: string; onSave?: () => void }
+
+export default function VisualsTab({ davidContext, onSave }: Props) {
   const [request, setRequest] = useState('')
   const [format, setFormat] = useState(FORMATS[0])
   const [data, setData] = useState<CarouselData | null>(null)
@@ -191,6 +202,11 @@ export default function VisualsTab({ davidContext }: Props) {
       const json = await res.json()
       if (!res.ok) throw new Error(json.error || 'Something went wrong')
       setData(json)
+      saveConversation('[Visuals] ' + request.trim().slice(0, 55), [
+        { role: 'user', content: request },
+        { role: 'assistant', content: json.title || 'Carousel generated' },
+      ])
+      onSave?.()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to generate')
     } finally {

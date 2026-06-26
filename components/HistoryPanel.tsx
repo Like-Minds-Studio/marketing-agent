@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { SavedConversation } from '@/lib/types'
-import { loadConversations, deleteConversation } from '@/lib/storage'
 
 interface Props {
   open: boolean
@@ -46,24 +45,25 @@ async function deleteFromSupabase(id: string) {
 
 export default function HistoryPanel({ open, onClose, onLoad, refreshTrigger }: Props) {
   const [conversations, setConversations] = useState<SavedConversation[]>([])
-  const [source, setSource] = useState<'cloud' | 'local'>('local')
+  const [loading, setLoading] = useState(false)
+  const [cloudError, setCloudError] = useState(false)
 
   useEffect(() => {
     if (!open) return
+    setLoading(true)
+    setCloudError(false)
     fetchFromSupabase().then((remote) => {
       if (remote) {
         setConversations(remote)
-        setSource('cloud')
       } else {
-        setConversations(loadConversations())
-        setSource('local')
+        setCloudError(true)
+        setConversations([])
       }
-    })
+    }).finally(() => setLoading(false))
   }, [open, refreshTrigger])
 
   function handleDelete(e: React.MouseEvent, id: string) {
     e.stopPropagation()
-    deleteConversation(id)
     deleteFromSupabase(id)
     setConversations((prev) => prev.filter((c) => c.id !== id))
   }
@@ -75,10 +75,8 @@ export default function HistoryPanel({ open, onClose, onLoad, refreshTrigger }: 
       <div className={`fixed top-0 left-0 h-full w-72 bg-lm-surface border-r border-lm-bone/8 z-30 flex flex-col transition-transform duration-300 ease-in-out ${open ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="flex items-center justify-between px-4 py-4 border-b border-lm-bone/8 shrink-0">
           <div>
-            <span className="text-sm font-semibold text-lm-bone tracking-wide">Chat History</span>
-            <span className={`ml-2 text-[10px] px-1.5 py-0.5 rounded-full ${source === 'cloud' ? 'bg-lm-lilac/15 text-lm-lilac' : 'bg-lm-bone/8 text-lm-muted'}`}>
-              {source === 'cloud' ? 'Cloud' : 'Local'}
-            </span>
+            <span className="text-sm font-semibold text-lm-bone tracking-wide">History</span>
+            <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded-full bg-lm-lilac/15 text-lm-lilac">Cloud</span>
           </div>
           <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg text-lm-muted hover:text-lm-bone hover:bg-lm-bone/8 transition-colors">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
@@ -88,7 +86,16 @@ export default function HistoryPanel({ open, onClose, onLoad, refreshTrigger }: 
         </div>
 
         <div className="flex-1 overflow-y-auto py-2">
-          {conversations.length === 0 ? (
+          {loading ? (
+            <div className="px-4 py-8 text-center">
+              <p className="text-lm-muted text-sm">Loading…</p>
+            </div>
+          ) : cloudError ? (
+            <div className="px-4 py-8 text-center">
+              <p className="text-lm-muted text-sm">Could not reach cloud.</p>
+              <p className="text-lm-muted/60 text-xs mt-1">Check your Supabase environment variables.</p>
+            </div>
+          ) : conversations.length === 0 ? (
             <div className="px-4 py-8 text-center">
               <p className="text-lm-muted text-sm">No saved conversations yet.</p>
               <p className="text-lm-muted/60 text-xs mt-1">Start chatting — sessions save automatically.</p>
@@ -119,9 +126,7 @@ export default function HistoryPanel({ open, onClose, onLoad, refreshTrigger }: 
         </div>
 
         <div className="shrink-0 border-t border-lm-bone/8 px-4 py-3">
-          <p className="text-[11px] text-lm-muted text-center">
-            {source === 'cloud' ? 'Synced across devices via cloud' : 'Saved in this browser only'}
-          </p>
+          <p className="text-[11px] text-lm-muted text-center">Synced across devices via cloud</p>
         </div>
       </div>
     </>

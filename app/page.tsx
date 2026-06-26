@@ -149,10 +149,10 @@ export default function Page() {
             davidContext={davidContext}
           />
         )}
-        {activeTab === 'strategy' && <StrategyTab davidContext={davidContext} />}
-        {activeTab === 'visuals' && <VisualsTab davidContext={davidContext} />}
-        {activeTab === 'proposal' && <ProposalTab davidContext={davidContext} />}
-        {activeTab === 'calendar' && <CalendarTab davidContext={davidContext} />}
+        {activeTab === 'strategy' && <StrategyTab davidContext={davidContext} onSave={handleSave} />}
+        {activeTab === 'visuals' && <VisualsTab davidContext={davidContext} onSave={handleSave} />}
+        {activeTab === 'proposal' && <ProposalTab davidContext={davidContext} onSave={handleSave} />}
+        {activeTab === 'calendar' && <CalendarTab davidContext={davidContext} onSave={handleSave} />}
       </div>
 
       {/* ── Overlays ─────────────────────────────────── */}
