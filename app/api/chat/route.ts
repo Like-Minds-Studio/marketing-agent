@@ -21,10 +21,19 @@ export async function POST(req: Request) {
       })
     }
 
+    const today = new Date().toLocaleDateString('en-AU', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      timeZone: 'Australia/Sydney',
+    })
+    const systemPrompt = `Today's date is ${today} (Sydney time).\n\n${LIKE_MINDS_SYSTEM_PROMPT}`
+
     const stream = await anthropic.messages.create({
       model: 'claude-sonnet-4-6',
       max_tokens: 4096,
-      system: LIKE_MINDS_SYSTEM_PROMPT,
+      system: systemPrompt,
       messages,
       stream: true,
     })
