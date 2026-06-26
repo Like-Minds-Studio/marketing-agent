@@ -12,7 +12,10 @@ interface Message {
 
 export async function POST(req: Request) {
   try {
-    const { messages } = (await req.json()) as { messages: Message[] }
+    const { messages, davidContext } = (await req.json()) as {
+      messages: Message[]
+      davidContext?: string
+    }
 
     if (!messages || messages.length === 0) {
       return new Response(JSON.stringify({ error: 'No messages provided' }), {
@@ -28,7 +31,10 @@ export async function POST(req: Request) {
       day: 'numeric',
       timeZone: 'Australia/Sydney',
     })
-    const systemPrompt = `Today's date is ${today} (Sydney time).\n\n${LIKE_MINDS_SYSTEM_PROMPT}`
+    const contextSection = davidContext?.trim()
+      ? `## DAVID'S CURRENT CONTEXT\n\nDavid has shared the following personal context — factor it into every response:\n\n${davidContext.trim()}\n\n---\n\n`
+      : ''
+    const systemPrompt = `${contextSection}Today's date is ${today} (Sydney time).\n\n${LIKE_MINDS_SYSTEM_PROMPT}`
 
     const stream = await anthropic.messages.create({
       model: 'claude-sonnet-4-6',

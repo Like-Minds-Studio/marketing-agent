@@ -19,9 +19,10 @@ interface Props {
   pendingConversation: SavedConversation | null
   onPendingLoaded: () => void
   onSave: () => void
+  davidContext: string
 }
 
-export default function ChatTab({ pendingConversation, onPendingLoaded, onSave }: Props) {
+export default function ChatTab({ pendingConversation, onPendingLoaded, onSave, davidContext }: Props) {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -96,7 +97,7 @@ export default function ChatTab({ pendingConversation, onPendingLoaded, onSave }
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: newMessages }),
+        body: JSON.stringify({ messages: newMessages, davidContext }),
         signal: abortRef.current.signal,
       })
 

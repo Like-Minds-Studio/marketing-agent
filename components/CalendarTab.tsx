@@ -66,7 +66,9 @@ Format each day clearly with a horizontal rule separator between days.`)
   return lines.join('\n')
 }
 
-export default function CalendarTab() {
+interface Props { davidContext: string }
+
+export default function CalendarTab({ davidContext }: Props) {
   const [weekStart, setWeekStart] = useState('')
   const [audience, setAudience] = useState(AUDIENCE_OPTIONS[0])
   const [platforms, setPlatforms] = useState<string[]>(['Instagram', 'LinkedIn'])
@@ -99,7 +101,7 @@ export default function CalendarTab() {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: [{ role: 'user', content: prompt }] }),
+        body: JSON.stringify({ messages: [{ role: 'user', content: prompt }], davidContext }),
         signal: abortRef.current.signal,
       })
 

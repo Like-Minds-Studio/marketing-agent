@@ -53,7 +53,9 @@ Write in the Like Minds brand voice throughout: sophisticated but approachable, 
   return lines.join('\n')
 }
 
-export default function ProposalTab() {
+interface Props { davidContext: string }
+
+export default function ProposalTab({ davidContext }: Props) {
   const [fields, setFields] = useState({
     client: '',
     concept: '',
@@ -86,7 +88,7 @@ export default function ProposalTab() {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: [{ role: 'user', content: prompt }] }),
+        body: JSON.stringify({ messages: [{ role: 'user', content: prompt }], davidContext }),
         signal: abortRef.current.signal,
       })
 
