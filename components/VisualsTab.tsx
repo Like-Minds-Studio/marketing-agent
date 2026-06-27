@@ -10,6 +10,20 @@ const FORMATS = [
   { id: 'LinkedIn (1.91:1)', label: 'LinkedIn', dims: '1200 × 628', w: 1200, h: 628 },
 ]
 
+// ─── Slide themes ──────────────────────────────────────────────────────────
+const SLIDE_THEMES = [
+  // 0 — dark warm charcoal (hook / dramatic)
+  { bg: '#1C1814', headline: '#F0EDE4', body: '#9e8d7a', stat: '#AE8ADD', statLabel: '#9e8d7a', accent: '#AE8ADD', counter: '#5a5047', footerBorder: 'rgba(240,237,228,0.07)', gradient: 'radial-gradient(ellipse at 10% 90%, rgba(126,102,74,0.12) 0%, transparent 60%)', logoBg: '#AE8ADD', logoText: '#000000', siteTxt: '#5a5047' },
+  // 1 — bone cream (editorial / light)
+  { bg: '#F0EDE4', headline: '#1A1410', body: '#5a5047', stat: '#7B5CAD', statLabel: '#9e8d7a', accent: '#7B5CAD', counter: '#9e8d7a', footerBorder: 'rgba(28,24,20,0.12)', gradient: 'radial-gradient(ellipse at 90% 10%, rgba(123,92,173,0.05) 0%, transparent 60%)', logoBg: '#7B5CAD', logoText: '#ffffff', siteTxt: '#9e8d7a' },
+  // 2 — lilac brand pop
+  { bg: '#AE8ADD', headline: '#0E0C0A', body: '#2C1F46', stat: '#0E0C0A', statLabel: 'rgba(14,12,10,0.55)', accent: '#0E0C0A', counter: 'rgba(14,12,10,0.38)', footerBorder: 'rgba(14,12,10,0.14)', gradient: 'radial-gradient(ellipse at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 60%)', logoBg: '#0E0C0A', logoText: '#AE8ADD', siteTxt: 'rgba(14,12,10,0.45)' },
+  // 3 — warm espresso brown
+  { bg: '#281D12', headline: '#F0EDE4', body: '#9e8d7a', stat: '#AE8ADD', statLabel: '#9e8d7a', accent: '#AE8ADD', counter: '#5a5047', footerBorder: 'rgba(240,237,228,0.07)', gradient: 'radial-gradient(ellipse at 80% 20%, rgba(174,138,221,0.08) 0%, transparent 60%)', logoBg: '#AE8ADD', logoText: '#000000', siteTxt: '#5a5047' },
+  // 4 — warm sand (CTA / editorial)
+  { bg: '#DDD5C5', headline: '#1A1410', body: '#5a5047', stat: '#7B5CAD', statLabel: '#9e8d7a', accent: '#7B5CAD', counter: '#9e8d7a', footerBorder: 'rgba(28,24,20,0.12)', gradient: 'none', logoBg: '#7B5CAD', logoText: '#ffffff', siteTxt: '#9e8d7a' },
+]
+
 // ─── Slide renderer (used for both preview and export) ─────────────────────
 function SlideCard({
   slide,
@@ -28,6 +42,7 @@ function SlideCard({
   logoError: boolean
   onLogoError: () => void
 }) {
+  const theme = SLIDE_THEMES[index % SLIDE_THEMES.length]
   const isLandscape = w > h
   const headlineSize = isLandscape ? '52px' : slide.headline.length > 30 ? '60px' : '76px'
   const bodySize = isLandscape ? '24px' : '30px'
@@ -39,7 +54,7 @@ function SlideCard({
       style={{
         width: `${w}px`,
         height: `${h}px`,
-        background: '#0e0d0b',
+        background: theme.bg,
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
@@ -49,21 +64,23 @@ function SlideCard({
         overflow: 'hidden',
       }}
     >
-      {/* Subtle warm gradient overlay */}
-      <div style={{
-        position: 'absolute', inset: 0,
-        background: 'radial-gradient(ellipse at 10% 90%, rgba(126,102,74,0.08) 0%, transparent 60%)',
-        pointerEvents: 'none',
-      }} />
+      {/* Gradient overlay */}
+      {theme.gradient !== 'none' && (
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: theme.gradient,
+          pointerEvents: 'none',
+        }} />
+      )}
 
-      {/* Lilac accent bar */}
+      {/* Accent bar */}
       <div style={{
         position: 'absolute',
         top: padding,
         left: isLandscape ? '50px' : '72px',
         width: '3px',
         height: isLandscape ? '40px' : '56px',
-        background: '#AE8ADD',
+        background: theme.accent,
         borderRadius: '2px',
       }} />
 
@@ -73,7 +90,7 @@ function SlideCard({
         top: padding,
         right: padding,
         fontSize: '13px',
-        color: '#5a5047',
+        color: theme.counter,
         letterSpacing: '0.15em',
         fontWeight: '500',
       }}>
@@ -85,13 +102,13 @@ function SlideCard({
         {slide.isStat && slide.stat ? (
           <>
             <div style={{
-              fontSize: statSize, fontWeight: '800', color: '#AE8ADD',
+              fontSize: statSize, fontWeight: '800', color: theme.stat,
               lineHeight: '1', letterSpacing: '-0.04em', marginBottom: '16px',
             }}>
               {slide.stat}
             </div>
             <div style={{
-              fontSize: isLandscape ? '22px' : '26px', color: '#9e8d7a',
+              fontSize: isLandscape ? '22px' : '26px', color: theme.statLabel,
               fontWeight: '500', letterSpacing: '0.02em', marginBottom: '24px',
               textTransform: 'uppercase',
             }}>
@@ -101,17 +118,17 @@ function SlideCard({
         ) : null}
 
         <div style={{
-          fontSize: headlineSize, fontWeight: '800', color: '#F0EDE4',
+          fontSize: headlineSize, fontWeight: '800', color: theme.headline,
           lineHeight: '1.08', letterSpacing: '-0.025em',
           marginBottom: slide.body ? '28px' : '0',
-          maxWidth: isLandscape ? '900px' : '900px',
+          maxWidth: '900px',
         }}>
           {slide.headline}
         </div>
 
         {slide.body && (
           <div style={{
-            fontSize: bodySize, color: '#9e8d7a', lineHeight: '1.6',
+            fontSize: bodySize, color: theme.body, lineHeight: '1.6',
             fontWeight: '400', maxWidth: isLandscape ? '800px' : '840px',
           }}>
             {slide.body}
@@ -124,7 +141,7 @@ function SlideCard({
         display: 'flex', alignItems: 'center',
         justifyContent: 'space-between',
         paddingTop: '24px',
-        borderTop: '1px solid rgba(240,237,228,0.07)',
+        borderTop: `1px solid ${theme.footerBorder}`,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           {!logoError ? (
@@ -139,22 +156,22 @@ function SlideCard({
               <div style={{
                 width: isLandscape ? '28px' : '34px',
                 height: isLandscape ? '28px' : '34px',
-                background: '#AE8ADD', borderRadius: '6px',
+                background: theme.logoBg, borderRadius: '6px',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
-                <span style={{ fontSize: '9px', fontWeight: '900', color: '#000', letterSpacing: '-0.05em' }}>LM</span>
+                <span style={{ fontSize: '9px', fontWeight: '900', color: theme.logoText, letterSpacing: '-0.05em' }}>LM</span>
               </div>
               <span style={{
                 fontSize: isLandscape ? '11px' : '13px', fontWeight: '700',
-                color: '#F0EDE4', letterSpacing: '0.2em', textTransform: 'uppercase',
+                color: theme.headline, letterSpacing: '0.2em', textTransform: 'uppercase',
               }}>
-                Like Minds<span style={{ color: '#AE8ADD', fontSize: '8px', verticalAlign: 'super' }}>®</span>
+                Like Minds<span style={{ color: theme.accent, fontSize: '8px', verticalAlign: 'super' }}>®</span>
               </span>
             </div>
           )}
         </div>
         <span style={{
-          fontSize: '11px', color: '#5a5047', letterSpacing: '0.12em',
+          fontSize: '11px', color: theme.siteTxt, letterSpacing: '0.12em',
           fontWeight: '500', textTransform: 'uppercase',
         }}>
           likemindsstudio.com

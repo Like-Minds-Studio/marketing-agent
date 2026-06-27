@@ -43,7 +43,7 @@ async function deleteFromSupabase(id: string) {
   } catch {}
 }
 
-const FILTERS = ['All', 'Chat', 'Strategy', 'Proposal', 'Calendar', 'Visuals'] as const
+const FILTERS = ['All', 'Chat', 'Strategy', 'Email', 'Proposal', 'Calendar', 'Visuals'] as const
 type Filter = typeof FILTERS[number]
 
 function matchesFilter(title: string, filter: Filter): boolean {
@@ -57,6 +57,7 @@ export default function HistoryPanel({ open, onClose, onLoad, refreshTrigger }: 
   const [loading, setLoading] = useState(false)
   const [cloudError, setCloudError] = useState(false)
   const [activeFilter, setActiveFilter] = useState<Filter>('All')
+  const [search, setSearch] = useState('')
 
   useEffect(() => {
     if (!open) return
@@ -95,21 +96,30 @@ export default function HistoryPanel({ open, onClose, onLoad, refreshTrigger }: 
           </button>
         </div>
 
-        {/* Tab filters */}
-        <div className="shrink-0 px-3 py-2 border-b border-lm-bone/8 flex flex-wrap gap-1">
-          {FILTERS.map((f) => (
-            <button
-              key={f}
-              onClick={() => setActiveFilter(f)}
-              className={`px-2.5 py-1 rounded-lg text-[10px] font-medium transition-colors ${
-                activeFilter === f
-                  ? 'bg-lm-lilac/15 text-lm-lilac border border-lm-lilac/30'
-                  : 'text-lm-muted hover:text-lm-warm border border-transparent hover:border-lm-bone/10'
-              }`}
-            >
-              {f}
-            </button>
-          ))}
+        {/* Tab filters + search */}
+        <div className="shrink-0 px-3 py-2 border-b border-lm-bone/8">
+          <div className="flex flex-wrap gap-1 mb-2">
+            {FILTERS.map((f) => (
+              <button
+                key={f}
+                onClick={() => setActiveFilter(f)}
+                className={`px-2.5 py-1 rounded-lg text-[10px] font-medium transition-colors ${
+                  activeFilter === f
+                    ? 'bg-lm-lilac/15 text-lm-lilac border border-lm-lilac/30'
+                    : 'text-lm-muted hover:text-lm-warm border border-transparent hover:border-lm-bone/10'
+                }`}
+              >
+                {f}
+              </button>
+            ))}
+          </div>
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search conversations…"
+            className="w-full bg-lm-bone/5 border border-lm-bone/8 rounded-lg px-3 py-1.5 text-[12px] text-lm-bone/80 placeholder-lm-muted/50 focus:outline-none focus:border-lm-lilac/30 transition-colors"
+          />
         </div>
 
         <div className="flex-1 overflow-y-auto py-2">
@@ -128,7 +138,7 @@ export default function HistoryPanel({ open, onClose, onLoad, refreshTrigger }: 
               <p className="text-lm-muted/60 text-xs mt-1">Start chatting — sessions save automatically.</p>
             </div>
           ) : (
-            conversations.filter((c) => matchesFilter(c.title, activeFilter)).map((conv) => (
+            conversations.filter((c) => matchesFilter(c.title, activeFilter)).filter((c) => !search || c.title.toLowerCase().includes(search.toLowerCase())).map((conv) => (
               <button
                 key={conv.id}
                 onClick={() => { onLoad(conv); onClose() }}

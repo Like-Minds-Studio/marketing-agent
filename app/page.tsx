@@ -6,18 +6,20 @@ import StrategyTab from '@/components/StrategyTab'
 import ProposalTab from '@/components/ProposalTab'
 import CalendarTab from '@/components/CalendarTab'
 import VisualsTab from '@/components/VisualsTab'
+import EmailTab from '@/components/EmailTab'
 import HistoryPanel from '@/components/HistoryPanel'
 import ContextSidebar from '@/components/ContextSidebar'
 import OnboardingModal from '@/components/OnboardingModal'
 import { SavedConversation } from '@/lib/types'
 
-type Tab = 'chat' | 'strategy' | 'proposal' | 'calendar' | 'visuals'
+type Tab = 'chat' | 'strategy' | 'email' | 'proposal' | 'visuals' | 'calendar'
 
 const TABS: { id: Tab; label: string; hint: string }[] = [
-  { id: 'chat', label: 'Chat', hint: 'Open-ended marketing assistant' },
+  { id: 'chat', label: 'Chat', hint: 'Strategic advisor — ask anything' },
   { id: 'strategy', label: 'Strategy', hint: 'CEO-level advisory with guided prompts' },
-  { id: 'visuals', label: 'Visuals', hint: 'Generate branded Instagram & LinkedIn slides' },
+  { id: 'email', label: 'Email', hint: 'Draft client emails in your voice' },
   { id: 'proposal', label: 'Proposal', hint: 'Generate a formatted Like Minds proposal' },
+  { id: 'visuals', label: 'Visuals', hint: 'Generate branded Instagram & LinkedIn slides' },
   { id: 'calendar', label: 'Calendar', hint: 'Full week of social posts in one click' },
 ]
 
@@ -150,6 +152,7 @@ export default function Page() {
           />
         )}
         {activeTab === 'strategy' && <StrategyTab davidContext={davidContext} onSave={handleSave} />}
+        {activeTab === 'email' && <EmailTab davidContext={davidContext} onSave={handleSave} />}
         {activeTab === 'visuals' && <VisualsTab davidContext={davidContext} onSave={handleSave} />}
         {activeTab === 'proposal' && <ProposalTab davidContext={davidContext} onSave={handleSave} />}
         {activeTab === 'calendar' && <CalendarTab davidContext={davidContext} onSave={handleSave} />}

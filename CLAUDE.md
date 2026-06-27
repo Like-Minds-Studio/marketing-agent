@@ -17,7 +17,7 @@ Always run `npm run build` before committing — Railway deploys from main and w
 
 ## Architecture
 
-Single-page app (`app/page.tsx`) with five tabs rendered conditionally. All tabs receive `davidContext: string` (user's session notes, stored in localStorage under `lm_david_context`). The page manages tab state, history panel, and context sidebar as overlays.
+Single-page app (`app/page.tsx`) with six tabs rendered conditionally: Chat, Strategy, Email, Proposal, Visuals, Calendar. All tabs receive `davidContext: string` (user's session notes, stored in localStorage under `lm_david_context`). The page manages tab state, history panel, and context sidebar as overlays.
 
 ### API routes (`app/api/`)
 
@@ -32,6 +32,8 @@ All AI calls are server-side only. Never import Anthropic SDK in client componen
 | `/api/memory/extract` | POST — fire-and-forget. Uses `claude-haiku-4-5-20251001` to extract business facts from a user+assistant exchange. Saves to `memories` table. Always returns 200 (best-effort). |
 | `/api/visual` | Non-streaming. Returns `CarouselData` JSON for the visuals tab. |
 
+All non-Chat tabs (Strategy, Email, Proposal, Visuals, Calendar) share the same persistence pattern: stream completes → `saveConversation()` POST → `extractMemory()` fire-and-forget → `onSave?.()` to refresh History panel. Strategy, Proposal, Calendar, and Email tabs also expose a follow-up `<textarea>` after generation that sends the full `conversationHistory` back to `/api/chat` for iterative refinement.
+
 ### Supabase (`lib/supabase.ts`)
 
 `supabase` export is `null` when `SUPABASE_URL` / `SUPABASE_ANON_KEY` are not set. Every route that uses it must null-check and degrade gracefully. Never import this in browser components.
@@ -44,7 +46,7 @@ create table memories (id uuid primary key default gen_random_uuid(), content te
 
 ### localStorage (`lib/storage.ts`)
 
-Used as dual-write fallback alongside Supabase. Key `lm_conversations` (50 max). Key `lm_david_context` for session notes. Key `lm_onboarded` for onboarding state. All reads are SSR-safe (guarded with `typeof window === 'undefined'`).
+Used only for session-level state: `lm_david_context` (context sidebar notes), `lm_onboarded` (onboarding flag). Conversations and memories are Supabase-only — no localStorage fallback for those.
 
 ### Persistence flow (ChatTab)
 

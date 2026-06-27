@@ -5,14 +5,14 @@ import { useState } from 'react'
 const STEPS = [
   {
     title: 'Welcome, David.',
-    body: "This is your Like Minds AI advisor — built specifically for you, pre-loaded with everything about Like Minds Studio: your team, clients, brand voice, and active projects.",
+    body: "Your private CEO advisor — pre-loaded with Like Minds Studio's full context: business model, active deals, partners, team, financials, and live projects. Everything it needs to give you real advice, not generic information.",
     hint: null,
     badge: null,
   },
   {
-    title: 'Chat — open-ended assistant',
-    body: 'Ask anything: social captions, pitch copy, email drafts, positioning language, campaign ideas. It knows the Like Minds tone and your active projects.',
-    hint: 'Ask for an Instagram caption, a LinkedIn post, or a cold email — it writes in your voice.',
+    title: 'Chat — your strategic advisor',
+    body: 'Ask anything: growth decisions, client situations, BD plays, pricing calls, content ideas, email drafts. It thinks like a trusted CEO advisor — direct, specific, no corporate fluff.',
+    hint: "No need to over-explain. Say what's on your mind — it already knows Like Minds, the team, the partners, and your live projects.",
     badge: 'Chat',
   },
   {

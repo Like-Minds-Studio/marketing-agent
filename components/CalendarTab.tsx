@@ -66,6 +66,17 @@ Format each day clearly with a horizontal rule separator between days.`)
   return lines.join('\n')
 }
 
+function stripMarkdown(md: string): string {
+  return md
+    .replace(/^#{1,6}\s+/gm, '')
+    .replace(/\*\*(.+?)\*\*/g, '$1')
+    .replace(/\*(.+?)\*/g, '$1')
+    .replace(/^[-*+]\s+/gm, '• ')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
+}
+
 function extractMemory(userMessage: string, assistantMessage: string) {
   fetch('/api/memory/extract', {
     method: 'POST',
@@ -96,6 +107,8 @@ export default function CalendarTab({ davidContext, onSave }: Props) {
   const [output, setOutput] = useState('')
   const [loading, setLoading] = useState(false)
   const abortRef = useRef<AbortController | null>(null)
+  const [followUpInput, setFollowUpInput] = useState('')
+  const [conversationHistory, setConversationHistory] = useState<{ role: 'user' | 'assistant'; content: string }[]>([])
 
   useEffect(() => {
     setWeekStart(getNextMonday())
@@ -111,6 +124,8 @@ export default function CalendarTab({ davidContext, onSave }: Props) {
     if (platforms.length === 0 || loading) return
 
     setOutput('')
+    setFollowUpInput('')
+    setConversationHistory([])
     setLoading(true)
     abortRef.current = new AbortController()
 
@@ -144,6 +159,10 @@ export default function CalendarTab({ davidContext, onSave }: Props) {
         { role: 'user', content: prompt },
         { role: 'assistant', content: accumulated },
       ])
+      setConversationHistory([
+        { role: 'user', content: prompt },
+        { role: 'assistant', content: accumulated },
+      ])
       if (accumulated.length > 100) extractMemory('Content calendar for ' + weekLabel + (focus ? ', focus: ' + focus : ''), accumulated)
       onSave?.()
     } catch (err) {
@@ -160,7 +179,52 @@ export default function CalendarTab({ davidContext, onSave }: Props) {
   }
 
   async function copyToClipboard() {
-    await navigator.clipboard.writeText(output)
+    await navigator.clipboard.writeText(stripMarkdown(output))
+  }
+
+  async function followUp() {
+    if (!followUpInput.trim() || loading) return
+    setOutput('')
+    setLoading(true)
+    abortRef.current = new AbortController()
+
+    const newMessages = [
+      ...conversationHistory,
+      { role: 'user' as const, content: followUpInput.trim() },
+    ]
+
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: newMessages, davidContext }),
+        signal: abortRef.current.signal,
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || `Server error ${res.status}`)
+      }
+      const reader = res.body!.getReader()
+      const decoder = new TextDecoder()
+      let accumulated = ''
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        accumulated += decoder.decode(value, { stream: true })
+        setOutput(accumulated)
+      }
+      setConversationHistory((prev) => [
+        ...prev,
+        { role: 'user', content: followUpInput.trim() },
+        { role: 'assistant', content: accumulated },
+      ])
+      setFollowUpInput('')
+    } catch (err) {
+      if ((err as Error).name === 'AbortError') return
+      setOutput('Something went wrong. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -322,6 +386,39 @@ export default function CalendarTab({ davidContext, onSave }: Props) {
                   <span className="w-1.5 h-1.5 bg-lm-lilac rounded-full animate-bounce" />
                 </span>
               )}
+            </div>
+          </div>
+        )}
+
+        {conversationHistory.length > 0 && !loading && (
+          <div className="mt-3">
+            <div className="bg-lm-bone/4 border border-lm-bone/10 focus-within:border-lm-lilac/40 rounded-2xl px-4 py-3 transition-colors">
+              <textarea
+                value={followUpInput}
+                onChange={(e) => setFollowUpInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); followUp() } }}
+                placeholder="Refine: swap Wednesday for a Reel · add more Go-Getter posts · shift focus to Good Sides…"
+                rows={2}
+                className="w-full bg-transparent text-sm text-lm-bone placeholder-lm-muted/50 resize-none focus:outline-none leading-relaxed"
+              />
+              <div className="flex justify-between items-center mt-2 pt-2 border-t border-lm-bone/5">
+                <button
+                  onClick={() => { setOutput(''); setConversationHistory([]); setFollowUpInput('') }}
+                  className="text-xs text-lm-muted hover:text-lm-warm transition-colors"
+                >
+                  New calendar
+                </button>
+                <button
+                  onClick={followUp}
+                  disabled={!followUpInput.trim()}
+                  className="flex items-center gap-1.5 px-4 py-2 bg-lm-lilac hover:bg-[#C4A3E8] disabled:bg-lm-bone/10 disabled:cursor-not-allowed rounded-xl text-xs font-semibold text-black disabled:text-lm-muted transition-colors"
+                >
+                  Refine
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
         )}

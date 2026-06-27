@@ -26,12 +26,12 @@ function extractMemory(userMessage: string, assistantMessage: string) {
 }
 
 const STARTER_PROMPTS = [
-  'Write a LinkedIn post about our multi-site rollout expertise',
-  'Create 5 Instagram captions for our Go-Getter audience',
-  'Draft a cold outreach email to a hospitality investor',
-  'Write a Reels script about the 1 Remedy wellness concept',
-  'Build a content calendar for this week across all platforms',
-  'Give me positioning language for a hotel group pitch',
+  'What should I prioritise this week — LM Studio, Good Sides, or 1 Remedy?',
+  'Help me prep for a pitch meeting with a new hotel group prospect',
+  'Give me a straight read on my biggest business risk right now',
+  'How should I price a 400sqm restaurant fit-out at full D&C scope?',
+  "A prospect went quiet after our proposal — how do I re-engage without looking desperate?",
+  'Write a LinkedIn post about why most hospitality fitouts go wrong',
 ]
 
 interface Props {
@@ -148,9 +148,9 @@ export default function ChatTab({ pendingConversation, onPendingLoaded, onSave, 
             <div className="w-14 h-14 bg-lm-lilac/12 border border-lm-lilac/25 rounded-2xl flex items-center justify-center mb-6">
               <span className="text-xl font-black text-lm-lilac tracking-tighter">LM</span>
             </div>
-            <h1 className="text-2xl font-bold text-lm-bone mb-3 tracking-tight">Your Like Minds marketing AI</h1>
+            <h1 className="text-2xl font-bold text-lm-bone mb-3 tracking-tight">What&apos;s on your mind?</h1>
             <p className="text-lm-warm text-sm max-w-md leading-relaxed mb-10">
-              Ask anything — social posts, proposals, campaign ideas, pitch copy, or content strategy. I know the brand, the clients, and the tone.
+              Ask anything — growth decisions, client situations, BD plays, pricing, content. I know Like Minds, your partners, your live projects, and how you like to work.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-w-2xl">
               {STARTER_PROMPTS.map((prompt) => (
@@ -229,7 +229,7 @@ export default function ChatTab({ pendingConversation, onPendingLoaded, onSave, 
               value={input}
               onChange={(e) => { setInput(e.target.value); autoResize() }}
               onKeyDown={handleKeyDown}
-              placeholder="Ask anything about marketing, content, proposals…"
+              placeholder="Ask anything — strategy, growth, client situations, pricing, BD, content…"
               rows={1}
               disabled={loading}
               className="flex-1 bg-transparent text-sm text-lm-bone placeholder-lm-muted resize-none focus:outline-none leading-relaxed"
