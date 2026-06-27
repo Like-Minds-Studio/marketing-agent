@@ -164,7 +164,16 @@ export async function POST(req: Request) {
 
     const reply = response.content.find((b) => b.type === 'text')?.text ?? 'No response.'
 
-    await saveHistory(chatId, [...messages, { role: 'assistant', content: reply }])
+    const updatedMessages: ChatMessage[] = [...messages, { role: 'assistant', content: reply }]
+    await saveHistory(chatId, updatedMessages)
+
+    // Fire-and-forget memory extraction (same as web app tabs)
+    fetch(new URL('/api/memory/extract', req.url).toString(), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userMessage: text, assistantMessage: reply }),
+    }).catch(() => {})
+
     await sendReply(chatId, reply)
 
     return new Response('OK', { status: 200 })
