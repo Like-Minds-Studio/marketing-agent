@@ -31,6 +31,7 @@ All AI calls are server-side only. Never import Anthropic SDK in client componen
 | `/api/memory` | GET returns up to 30 memories; DELETE by id. Always returns 200 with `[]` if Supabase not configured. |
 | `/api/memory/extract` | POST — fire-and-forget. Uses `claude-haiku-4-5-20251001` to extract business facts from a user+assistant exchange. Saves to `memories` table. Always returns 200 (best-effort). |
 | `/api/visual` | Non-streaming. Returns `CarouselData` JSON for the visuals tab. |
+| `/api/telegram` | Telegram webhook. Receives updates, calls Claude, replies via Bot API. Stores history in `conversations` table under `telegram_<chat_id>`. |
 
 All non-Chat tabs (Strategy, Email, Proposal, Visuals, Calendar) share the same persistence pattern: stream completes → `saveConversation()` POST → `extractMemory()` fire-and-forget → `onSave?.()` to refresh History panel. Strategy, Proposal, Calendar, and Email tabs also expose a follow-up `<textarea>` after generation that sends the full `conversationHistory` back to `/api/chat` for iterative refinement.
 
@@ -69,9 +70,11 @@ Tailwind v4 `@theme` block defines all brand colours as `lm-*` utilities: `lm-bg
 ## Environment variables
 
 ```
-ANTHROPIC_API_KEY=        # Required
-SUPABASE_URL=             # Optional — enables cross-device history and memory
-SUPABASE_ANON_KEY=        # Optional — pair with SUPABASE_URL
+ANTHROPIC_API_KEY=              # Required
+SUPABASE_URL=                   # Optional — enables cross-device history and memory
+SUPABASE_ANON_KEY=              # Optional — pair with SUPABASE_URL
+TELEGRAM_BOT_TOKEN=             # Optional — enables Telegram bot (/api/telegram webhook)
+TELEGRAM_ALLOWED_CHAT_IDS=      # Optional — comma-separated chat IDs to whitelist (e.g. 123456,789012)
 ```
 
 App runs without Supabase — falls back to localStorage only.
