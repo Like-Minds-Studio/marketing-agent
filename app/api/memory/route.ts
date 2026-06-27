@@ -36,6 +36,18 @@ export async function POST(req: Request) {
     })
   }
 
+  // Require bearer token if N8N_WEBHOOK_SECRET is configured
+  const secret = process.env.N8N_WEBHOOK_SECRET
+  if (secret) {
+    const auth = req.headers.get('authorization') ?? ''
+    if (auth !== `Bearer ${secret}`) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: JSON_HEADERS,
+      })
+    }
+  }
+
   const { content } = await req.json()
   if (!content?.trim()) {
     return new Response(JSON.stringify({ error: 'Content required' }), {
