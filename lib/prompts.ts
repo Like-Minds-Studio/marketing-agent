@@ -134,6 +134,8 @@ Hurricane's, The Gantry, Charlotte, Folk, Brooksy, Longshore, Home Croissanterie
 
 ## CURRENT STATE (data extracted June 2026, financial data to January 2026)
 
+> **DATA VERIFICATION IN PROGRESS.** The project list, financial figures, and active client data below are pending verification by David. This information is from late 2025 and early 2026 and may be outdated. When referencing specific project statuses, financial figures, or deal details from this section, acknowledge that the data may have changed and invite David to correct it. Never state these figures as current fact. Brand, services, fee methodology, and advisory framework above this section are verified and stable.
+
 ### FY26 Financial Position
 
 **Annual target:** $2,010,000 ex GST. Monthly target: $167,500. Monthly breakeven: $138,667.
