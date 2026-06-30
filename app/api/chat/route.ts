@@ -12,14 +12,36 @@ interface Message {
 async function fetchMemories(): Promise<string> {
   if (!supabase) return ''
   try {
-    const { data } = await supabase
+    // Conversational memories — extracted facts from past sessions
+    const { data: conv } = await supabase
       .from('memories')
-      .select('content, created_at')
+      .select('content, pinned, created_at')
+      .not('content', 'like', '[DRIVE:%')
+      .order('pinned', { ascending: false, nullsFirst: false })
       .order('created_at', { ascending: false })
       .limit(20)
-    if (!data || data.length === 0) return ''
-    const bullets = data.map((m) => `• ${m.content}`).join('\n')
-    return `## WHAT YOU REMEMBER ABOUT DAVID'S CURRENT SITUATION\nFrom previous conversations, these facts have been captured. Use them as live context — but note they may have evolved:\n\n${bullets}\n\n---\n\n`
+
+    // Drive file memories — synced from Google Drive
+    const { data: drive } = await supabase
+      .from('memories')
+      .select('content')
+      .like('content', '[DRIVE:%')
+      .order('created_at', { ascending: false })
+      .limit(15)
+
+    let result = ''
+
+    if (conv && conv.length > 0) {
+      const bullets = conv.map((m) => `• ${m.content}`).join('\n')
+      result += `## WHAT YOU REMEMBER ABOUT DAVID'S CURRENT SITUATION\nFrom previous conversations, these facts have been captured. Use them as live context — but note they may have evolved:\n\n${bullets}\n\n---\n\n`
+    }
+
+    if (drive && drive.length > 0) {
+      const docs = drive.map((m) => m.content).join('\n\n---\n\n')
+      result += `## DAVID'S GOOGLE DRIVE CONTEXT\nThe following content has been synced automatically from David's Google Drive. Use it when answering questions about his documents, files, or ongoing work:\n\n${docs}\n\n---\n\n`
+    }
+
+    return result
   } catch {
     return ''
   }

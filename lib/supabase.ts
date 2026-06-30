@@ -1,7 +1,9 @@
 import { createClient } from '@supabase/supabase-js'
 
 const url = process.env.SUPABASE_URL
-const key = process.env.SUPABASE_ANON_KEY
+// Service role key bypasses RLS — safe here because this file is server-side only.
+// Never import this module in client components.
+const key = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_ANON_KEY
 
 // Returns null when env vars aren't set — routes handle this gracefully
 export const supabase = url && key ? createClient(url, key) : null
