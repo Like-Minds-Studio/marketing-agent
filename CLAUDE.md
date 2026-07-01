@@ -32,13 +32,23 @@ All AI calls are server-side only. Never import Anthropic SDK in client componen
 | `/api/memory/extract` | POST — fire-and-forget. Uses `claude-haiku-4-5-20251001` to extract business facts from a user+assistant exchange. Saves to `memories` table. Always returns 200 (best-effort). |
 | `/api/visual` | Non-streaming. Returns `CarouselData` JSON for the visuals tab. |
 | `/api/telegram` | Telegram webhook. Receives updates, calls Claude, replies via Bot API. Stores history in `conversations` table under `telegram_<chat_id>`. |
+| `/api/telegram/brief` | POST — sends a daily morning brief to David via Telegram. Triggered by n8n on a schedule. |
+| `/api/maps` | POST — wraps Google Places Text Search API. Accepts `{ query, type? }`, returns top 5 results biased to Sydney. Requires `GOOGLE_MAPS_API_KEY`. |
 | `/api/drive-sync` | POST — accepts `{ fileId, fileName, content }` from n8n. Chunks large files (1800 chars, 6 chunks max), deduplicates by `[DRIVE:fileId]` prefix, stores to `memories` table. Requires `Authorization: Bearer <N8N_WEBHOOK_SECRET>`. |
 
 All non-Chat tabs (Strategy, Email, Proposal, Visuals, Calendar) share the same persistence pattern: stream completes → `saveConversation()` POST → `extractMemory()` fire-and-forget → `onSave?.()` to refresh History panel. Strategy, Proposal, Calendar, and Email tabs also expose a follow-up `<textarea>` after generation that sends the full `conversationHistory` back to `/api/chat` for iterative refinement.
 
+### Memory loading (`app/api/chat/route.ts`)
+
+Memories are split into two pools before being injected into the system prompt:
+- **Conversational** (max 20): anything not prefixed `[DRIVE:` — ordered pinned-first, then newest. These are facts extracted from past conversations.
+- **Drive** (max 15): entries prefixed `[DRIVE:fileId]` — synced from Google Drive via n8n. Shown in a separate section headed "DAVID'S GOOGLE DRIVE CONTEXT".
+
+Drive memories use `[DRIVE:fileId]` as a deduplication key. `/api/drive-sync` deletes all existing entries for a fileId before inserting new chunks.
+
 ### Supabase (`lib/supabase.ts`)
 
-`supabase` export is `null` when `SUPABASE_URL` / `SUPABASE_ANON_KEY` are not set. Every route that uses it must null-check and degrade gracefully. Never import this in browser components.
+RLS is enabled on both tables. The client uses `SUPABASE_SERVICE_ROLE_KEY` (bypasses RLS) with `SUPABASE_ANON_KEY` as fallback. Every route that uses it must null-check and degrade gracefully. Never import this in browser components.
 
 **Schema:**
 ```sql
@@ -91,3 +101,32 @@ N8N_WEBHOOK_SECRET=             # Optional — enables bearer token auth on POST
 ```
 
 App runs without Supabase — falls back to localStorage only.
+
+## n8n workflows (`n8n/`)
+
+Importable workflow JSON files for n8n. Import via Workflows → Import from file, then map credentials after import.
+
+| File | What it syncs | Runs at |
+|---|---|---|
+| `gdrive-sync.json` | Google Docs → `/api/drive-sync` (chunks + deduplicates) | 1am |
+| `crm-sync.json` | Pipeline Master Sheet → `/api/memory` | 6am |
+| `gmail-sync.json` | Unread Gmail threads → `/api/memory` | 5:30am |
+| `xero-sync.json` | Outstanding + overdue invoices → `/api/memory` | 6:30am |
+| `canva-sync.json` | Canva design metadata → `/api/memory` | 2am |
+| `calendar-sync.json` | Upcoming 7-day Google Calendar events → `/api/memory` | 6am |
+| `daily-brief.json` | Triggers `/api/telegram/brief` | 5am |
+
+All workflows use the same Bearer Auth credential (`N8N_WEBHOOK_SECRET`) for the HTTP Request nodes hitting the Railway app. For the initial Google Drive backfill, remove the `modifiedTime` filter from `gdrive-sync.json`, run manually once, then restore it.
+
+### Credential scope requirements (set once on Friday session)
+
+| Service | n8n Credential Type | Scope to set | Notes |
+|---|---|---|---|
+| Gmail | Gmail OAuth2 | default (`https://mail.google.com/`) | Covers read + send already |
+| Google Drive | Google Drive OAuth2 | default (`drive`) | Full access by default |
+| Google Sheets | Google Sheets OAuth2 | default (`spreadsheets`) | Full access by default |
+| Google Calendar | Google Calendar OAuth2 | default (`calendar.events`) | Full access — needed for future booking |
+| Xero | Xero OAuth2 | `accounting.transactions` | **Change from default** — drop `.read` suffix to enable write |
+| Canva | HTTP Header Auth (API token) | n/a — token has full access | Generate in Canva Developer Portal |
+
+Phase 2 write actions (Gmail send, Calendar booking, Xero invoice creation) will use the same credentials — no re-auth needed if set up with the scopes above.

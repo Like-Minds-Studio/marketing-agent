@@ -1,0 +1,126 @@
+{
+  "name": "Like Minds — Google Calendar Sync",
+  "nodes": [
+    {
+      "id": "node-schedule",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 300],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "daysInterval": 1,
+              "triggerAtHour": 6,
+              "triggerAtMinute": 0
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "node-calendar",
+      "name": "Get Upcoming Events",
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.1,
+      "position": [220, 300],
+      "parameters": {
+        "resource": "event",
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "primary",
+          "mode": "id"
+        },
+        "returnAll": false,
+        "limit": 20,
+        "options": {
+          "timeMin": "={{ $now.toISO() }}",
+          "timeMax": "={{ $now.plus(7, 'days').toISO() }}",
+          "singleEvents": true,
+          "orderBy": "startTime"
+        }
+      },
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "id": "node-code",
+      "name": "Format Calendar Summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 300],
+      "parameters": {
+        "jsCode": "const events = items.map(item => item.json);\n\nif (events.length === 0) {\n  return [{ json: { skip: true } }];\n}\n\nconst formatted = events.map(event => {\n  const start = event.start?.dateTime || event.start?.date || 'TBC';\n  const end = event.end?.dateTime || event.end?.date || '';\n  const startDate = new Date(start);\n  const dateStr = startDate.toLocaleDateString('en-AU', {\n    weekday: 'short', month: 'short', day: 'numeric',\n    hour: '2-digit', minute: '2-digit', timeZone: 'Australia/Sydney'\n  });\n  const location = event.location ? ` @ ${event.location}` : '';\n  const attendees = event.attendees\n    ? ` (with: ${event.attendees.slice(0, 3).map(a => a.email).join(', ')})`\n    : '';\n  return `${event.summary || 'Untitled'} — ${dateStr}${location}${attendees}`;\n}).join('\\n');\n\nreturn [{ json: { summary: `Upcoming 7 days (${events.length} events):\\n${formatted}`, count: events.length } }];"
+      }
+    },
+    {
+      "id": "node-filter",
+      "name": "Skip If No Events",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [660, 300],
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": false, "leftValue": "", "typeValidation": "strict" },
+          "conditions": [
+            {
+              "id": "cond-1",
+              "leftValue": "={{ $json.skip }}",
+              "rightValue": true,
+              "operator": { "type": "boolean", "operation": "notEquals" }
+            }
+          ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "node-memory",
+      "name": "Save to Agent Memory",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [880, 200],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.AGENT_BASE_URL }}/api/memory",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"content\": \"[CALENDAR] {{ $json.summary }}\",\n  \"pinned\": false\n}",
+        "options": {}
+      },
+      "credentials": {
+        "httpBearerAuth": {
+          "name": "Bearer Auth account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [[{ "node": "Get Upcoming Events", "type": "main", "index": 0 }]]
+    },
+    "Get Upcoming Events": {
+      "main": [[{ "node": "Format Calendar Summary", "type": "main", "index": 0 }]]
+    },
+    "Format Calendar Summary": {
+      "main": [[{ "node": "Skip If No Events", "type": "main", "index": 0 }]]
+    },
+    "Skip If No Events": {
+      "main": [
+        [{ "node": "Save to Agent Memory", "type": "main", "index": 0 }],
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
