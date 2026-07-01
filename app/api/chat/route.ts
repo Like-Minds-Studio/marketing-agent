@@ -30,35 +30,26 @@ const SEARCH_PLACES_TOOL: Anthropic.Tool = {
 }
 
 async function searchPlaces(query: string, type?: string): Promise<unknown> {
-  const key = process.env.GOOGLE_MAPS_API_KEY
-  if (!key) return { error: 'Maps not configured' }
-  const url = new URL('https://maps.googleapis.com/maps/api/place/textsearch/json')
-  url.searchParams.set('query', query)
-  url.searchParams.set('key', key)
-  if (type) url.searchParams.set('type', type)
-  url.searchParams.set('location', '-33.8688,151.2093')
-  url.searchParams.set('radius', '50000')
+  const key = process.env.GEMINI_API_KEY
+  if (!key) return { error: 'Search not configured' }
+  const searchQuery = `Find ${type ? type + ' ' : ''}${query} in Sydney, Australia. List top 5 results with name, address, and any useful details like rating or hours.`
   try {
-    const res = await fetch(url.toString())
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ role: 'user', parts: [{ text: searchQuery }] }],
+          tools: [{ google_search: {} }],
+        }),
+      }
+    )
     const data = await res.json()
-    if (data.status !== 'OK' && data.status !== 'ZERO_RESULTS') return { error: data.status }
-    return (data.results ?? []).slice(0, 5).map((p: {
-      name: string
-      formatted_address: string
-      rating?: number
-      user_ratings_total?: number
-      types?: string[]
-      business_status?: string
-    }) => ({
-      name: p.name,
-      address: p.formatted_address,
-      rating: p.rating,
-      reviews: p.user_ratings_total,
-      types: p.types?.slice(0, 3),
-      status: p.business_status,
-    }))
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text ?? 'No results found'
+    return { results: text }
   } catch {
-    return { error: 'Maps search failed' }
+    return { error: 'Search failed' }
   }
 }
 
@@ -125,7 +116,7 @@ export async function POST(req: Request) {
 
     const systemPrompt = `${memoriesSection}${contextSection}Today's date is ${today} (Sydney time).\n\n${LIKE_MINDS_SYSTEM_PROMPT}`
 
-    const tools: Anthropic.Tool[] = process.env.GOOGLE_MAPS_API_KEY ? [SEARCH_PLACES_TOOL] : []
+    const tools: Anthropic.Tool[] = process.env.GEMINI_API_KEY ? [SEARCH_PLACES_TOOL] : []
 
     const encoder = new TextEncoder()
 
