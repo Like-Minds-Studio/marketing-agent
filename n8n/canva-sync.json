@@ -1,0 +1,130 @@
+{
+  "name": "Like Minds — Canva Sync",
+  "nodes": [
+    {
+      "id": "node-schedule",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 300],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "daysInterval": 1,
+              "triggerAtHour": 2,
+              "triggerAtMinute": 0
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "node-proposal-commercial",
+      "name": "Get Proposal Master (Commercial)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [220, 160],
+      "parameters": {
+        "method": "GET",
+        "url": "https://api.canva.com/rest/v1/designs/DAHFpqVIML4",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "options": {}
+      },
+      "credentials": {
+        "httpBearerAuth": {
+          "name": "Canva API account"
+        }
+      }
+    },
+    {
+      "id": "node-portfolio",
+      "name": "Get Portfolio Deck",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [220, 420],
+      "parameters": {
+        "method": "GET",
+        "url": "https://api.canva.com/rest/v1/designs/DAGzW3XSohc",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "options": {}
+      },
+      "credentials": {
+        "httpBearerAuth": {
+          "name": "Canva API account"
+        }
+      }
+    },
+    {
+      "id": "node-merge",
+      "name": "Merge Designs",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [440, 300],
+      "parameters": {
+        "mode": "append"
+      }
+    },
+    {
+      "id": "node-code",
+      "name": "Format Canva Summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [660, 300],
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst lines = [];\n\nfor (const item of items) {\n  const d = item.json;\n  if (!d || !d.design) continue;\n  const design = d.design;\n  const name = design.title || 'Untitled';\n  const id = design.id || '';\n  const updated = design.updated_at ? new Date(design.updated_at * 1000).toLocaleDateString('en-AU') : 'Unknown';\n  const pages = design.page_count || '?';\n  lines.push(`${name} (ID: ${id}) — ${pages} pages — last updated ${updated}`);\n}\n\nif (!lines.length) return [];\n\nconst date = new Date().toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' });\nconst content = `Canva Design Status — ${date}\\n\\n${lines.join('\\n')}`;\n\nreturn [{ json: { content } }];"
+      }
+    },
+    {
+      "id": "node-http",
+      "name": "Send to Agent Memory",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [880, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "https://marketing-agent-production-8efa.up.railway.app/api/memory",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendBody": true,
+        "specifyBody": "keypair",
+        "bodyParameters": {
+          "parameters": [
+            { "name": "content", "value": "={{ $json.content }}" }
+          ]
+        }
+      },
+      "credentials": {
+        "httpBearerAuth": {
+          "name": "Bearer Auth account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [{ "node": "Get Proposal Master (Commercial)", "type": "main", "index": 0 }],
+        [{ "node": "Get Portfolio Deck", "type": "main", "index": 0 }]
+      ]
+    },
+    "Get Proposal Master (Commercial)": {
+      "main": [[{ "node": "Merge Designs", "type": "main", "index": 0 }]]
+    },
+    "Get Portfolio Deck": {
+      "main": [[{ "node": "Merge Designs", "type": "main", "index": 1 }]]
+    },
+    "Merge Designs": {
+      "main": [[{ "node": "Format Canva Summary", "type": "main", "index": 0 }]]
+    },
+    "Format Canva Summary": {
+      "main": [[{ "node": "Send to Agent Memory", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

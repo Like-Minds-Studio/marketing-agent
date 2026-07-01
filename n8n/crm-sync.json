@@ -1,0 +1,100 @@
+{
+  "name": "Like Minds — CRM Sync",
+  "nodes": [
+    {
+      "id": "node-schedule",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 300],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "daysInterval": 1,
+              "triggerAtHour": 6,
+              "triggerAtMinute": 0
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "node-sheets",
+      "name": "Read CRM Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [220, 300],
+      "parameters": {
+        "resource": "sheet",
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "value": "1gxdRKR4YpDhNIjTxJAh0XVg2grF9d7cTBKSW8HkCpOo",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "id": "node-code",
+      "name": "Format Pipeline Summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 300],
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nif (!items.length) return [];\n\nconst rows = items\n  .map(item => {\n    const d = item.json;\n    const keys = Object.keys(d);\n    return keys.map(k => `${k}: ${d[k]}`).join(' | ');\n  })\n  .filter(r => r.trim().length > 0);\n\nif (!rows.length) return [];\n\nconst date = new Date().toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' });\nconst content = `CRM Pipeline — ${date}\\n\\n${rows.join('\\n')}`;\n\nreturn [{ json: { content } }];"
+      }
+    },
+    {
+      "id": "node-http",
+      "name": "Send to Agent Memory",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [660, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "https://marketing-agent-production-8efa.up.railway.app/api/memory",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendBody": true,
+        "specifyBody": "keypair",
+        "bodyParameters": {
+          "parameters": [
+            { "name": "content", "value": "={{ $json.content }}" }
+          ]
+        }
+      },
+      "credentials": {
+        "httpBearerAuth": {
+          "name": "Bearer Auth account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [[{ "node": "Read CRM Sheet", "type": "main", "index": 0 }]]
+    },
+    "Read CRM Sheet": {
+      "main": [[{ "node": "Format Pipeline Summary", "type": "main", "index": 0 }]]
+    },
+    "Format Pipeline Summary": {
+      "main": [[{ "node": "Send to Agent Memory", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

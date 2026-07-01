@@ -9,10 +9,62 @@ interface Message {
   content: string
 }
 
+const SEARCH_PLACES_TOOL: Anthropic.Tool = {
+  name: 'search_places',
+  description:
+    'Search for businesses, venues, or locations in Sydney using Google Places. Use when David asks to find restaurants, venues, competitors, suppliers, or any physical location in or around Sydney.',
+  input_schema: {
+    type: 'object',
+    properties: {
+      query: {
+        type: 'string',
+        description: 'Search query e.g. "Italian restaurants Surry Hills" or "event venues Sydney CBD"',
+      },
+      type: {
+        type: 'string',
+        description: 'Optional Google Places type filter e.g. "restaurant", "bar", "lodging"',
+      },
+    },
+    required: ['query'],
+  },
+}
+
+async function searchPlaces(query: string, type?: string): Promise<unknown> {
+  const key = process.env.GOOGLE_MAPS_API_KEY
+  if (!key) return { error: 'Maps not configured' }
+  const url = new URL('https://maps.googleapis.com/maps/api/place/textsearch/json')
+  url.searchParams.set('query', query)
+  url.searchParams.set('key', key)
+  if (type) url.searchParams.set('type', type)
+  url.searchParams.set('location', '-33.8688,151.2093')
+  url.searchParams.set('radius', '50000')
+  try {
+    const res = await fetch(url.toString())
+    const data = await res.json()
+    if (data.status !== 'OK' && data.status !== 'ZERO_RESULTS') return { error: data.status }
+    return (data.results ?? []).slice(0, 5).map((p: {
+      name: string
+      formatted_address: string
+      rating?: number
+      user_ratings_total?: number
+      types?: string[]
+      business_status?: string
+    }) => ({
+      name: p.name,
+      address: p.formatted_address,
+      rating: p.rating,
+      reviews: p.user_ratings_total,
+      types: p.types?.slice(0, 3),
+      status: p.business_status,
+    }))
+  } catch {
+    return { error: 'Maps search failed' }
+  }
+}
+
 async function fetchMemories(): Promise<string> {
   if (!supabase) return ''
   try {
-    // Conversational memories — extracted facts from past sessions
     const { data: conv } = await supabase
       .from('memories')
       .select('content, pinned, created_at')
@@ -21,7 +73,6 @@ async function fetchMemories(): Promise<string> {
       .order('created_at', { ascending: false })
       .limit(20)
 
-    // Drive file memories — synced from Google Drive
     const { data: drive } = await supabase
       .from('memories')
       .select('content')
@@ -66,7 +117,7 @@ export async function POST(req: Request) {
       timeZone: 'Australia/Sydney',
     })
 
-    const [memoriesSection] = await Promise.all([fetchMemories()])
+    const memoriesSection = await fetchMemories()
 
     const contextSection = davidContext?.trim()
       ? `## DAVID'S CURRENT CONTEXT\n\nDavid has shared the following for this session — prioritise this over remembered context:\n\n${davidContext.trim()}\n\n---\n\n`
@@ -74,23 +125,82 @@ export async function POST(req: Request) {
 
     const systemPrompt = `${memoriesSection}${contextSection}Today's date is ${today} (Sydney time).\n\n${LIKE_MINDS_SYSTEM_PROMPT}`
 
-    const stream = await anthropic.messages.create({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 4096,
-      system: systemPrompt,
-      messages,
-      stream: true,
-    })
+    const tools: Anthropic.Tool[] = process.env.GOOGLE_MAPS_API_KEY ? [SEARCH_PLACES_TOOL] : []
 
     const encoder = new TextEncoder()
+
     const readable = new ReadableStream({
       async start(controller) {
         try {
-          for await (const event of stream) {
-            if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
-              controller.enqueue(encoder.encode(event.delta.text))
+          let loopMessages: Anthropic.MessageParam[] = messages.map((m) => ({
+            role: m.role,
+            content: m.content,
+          }))
+
+          while (true) {
+            const stream = anthropic.messages.stream({
+              model: 'claude-sonnet-4-6',
+              max_tokens: 4096,
+              system: systemPrompt,
+              messages: loopMessages,
+              ...(tools.length > 0 && { tools }),
+            })
+
+            let activeToolId = ''
+            let activeToolName = ''
+            let activeToolInputJson = ''
+            const pendingToolCalls: Array<{ id: string; name: string; input: Record<string, unknown> }> = []
+
+            for await (const event of stream) {
+              if (event.type === 'content_block_start' && event.content_block.type === 'tool_use') {
+                activeToolId = event.content_block.id
+                activeToolName = event.content_block.name
+                activeToolInputJson = ''
+              } else if (event.type === 'content_block_delta') {
+                if (event.delta.type === 'text_delta') {
+                  controller.enqueue(encoder.encode(event.delta.text))
+                } else if (event.delta.type === 'input_json_delta') {
+                  activeToolInputJson += event.delta.partial_json
+                }
+              } else if (event.type === 'content_block_stop' && activeToolId) {
+                try {
+                  pendingToolCalls.push({
+                    id: activeToolId,
+                    name: activeToolName,
+                    input: JSON.parse(activeToolInputJson || '{}'),
+                  })
+                } catch { /* ignore malformed JSON */ }
+                activeToolId = ''
+              }
             }
+
+            const finalMessage = await stream.finalMessage()
+
+            if (finalMessage.stop_reason !== 'tool_use' || pendingToolCalls.length === 0) break
+
+            const toolResults: Anthropic.ToolResultBlockParam[] = await Promise.all(
+              pendingToolCalls.map(async (call) => {
+                let content: string
+                if (call.name === 'search_places') {
+                  const result = await searchPlaces(
+                    call.input.query as string,
+                    call.input.type as string | undefined,
+                  )
+                  content = JSON.stringify(result)
+                } else {
+                  content = 'Unknown tool'
+                }
+                return { type: 'tool_result' as const, tool_use_id: call.id, content }
+              })
+            )
+
+            loopMessages = [
+              ...loopMessages,
+              { role: 'assistant' as const, content: finalMessage.content },
+              { role: 'user' as const, content: toolResults },
+            ]
           }
+
           controller.close()
         } catch (err) {
           controller.error(err)

@@ -1,0 +1,97 @@
+{
+  "name": "Like Minds — Gmail Sync",
+  "nodes": [
+    {
+      "id": "node-schedule",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 300],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "daysInterval": 1,
+              "triggerAtHour": 5,
+              "triggerAtMinute": 30
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "node-gmail",
+      "name": "Get Recent Emails",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [220, 300],
+      "parameters": {
+        "resource": "message",
+        "operation": "getAll",
+        "returnAll": false,
+        "limit": 20,
+        "filters": {
+          "q": "is:unread newer_than:1d -from:noreply -from:no-reply"
+        },
+        "options": {
+          "format": "full"
+        }
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "id": "node-code",
+      "name": "Format Email Summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 300],
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nif (!items.length) return [];\n\nconst emails = items.map(item => {\n  const d = item.json;\n  const from = d.from || d.payload?.headers?.find(h => h.name === 'From')?.value || 'Unknown';\n  const subject = d.subject || d.payload?.headers?.find(h => h.name === 'Subject')?.value || '(no subject)';\n  const snippet = d.snippet || '';\n  return `From: ${from}\\nSubject: ${subject}\\nPreview: ${snippet}`;\n}).join('\\n\\n---\\n\\n');\n\nif (!emails.trim()) return [];\n\nconst date = new Date().toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' });\nconst content = `Gmail — Unread emails as of ${date}:\\n\\n${emails}`;\n\nreturn [{ json: { content } }];"
+      }
+    },
+    {
+      "id": "node-http",
+      "name": "Send to Agent Memory",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [660, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "https://marketing-agent-production-8efa.up.railway.app/api/memory",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendBody": true,
+        "specifyBody": "keypair",
+        "bodyParameters": {
+          "parameters": [
+            { "name": "content", "value": "={{ $json.content }}" }
+          ]
+        }
+      },
+      "credentials": {
+        "httpBearerAuth": {
+          "name": "Bearer Auth account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [[{ "node": "Get Recent Emails", "type": "main", "index": 0 }]]
+    },
+    "Get Recent Emails": {
+      "main": [[{ "node": "Format Email Summary", "type": "main", "index": 0 }]]
+    },
+    "Format Email Summary": {
+      "main": [[{ "node": "Send to Agent Memory", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

@@ -1,0 +1,132 @@
+{
+  "name": "Like Minds — Xero Financial Sync",
+  "nodes": [
+    {
+      "id": "node-schedule",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 300],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "daysInterval": 1,
+              "triggerAtHour": 6,
+              "triggerAtMinute": 30
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "node-invoices",
+      "name": "Get Outstanding Invoices",
+      "type": "n8n-nodes-base.xero",
+      "typeVersion": 1,
+      "position": [220, 200],
+      "parameters": {
+        "resource": "invoice",
+        "operation": "getAll",
+        "returnAll": true,
+        "filters": {
+          "statuses": ["AUTHORISED"]
+        }
+      },
+      "credentials": {
+        "xeroOAuth2Api": {
+          "name": "Xero account"
+        }
+      }
+    },
+    {
+      "id": "node-overdue",
+      "name": "Get Overdue Invoices",
+      "type": "n8n-nodes-base.xero",
+      "typeVersion": 1,
+      "position": [220, 420],
+      "parameters": {
+        "resource": "invoice",
+        "operation": "getAll",
+        "returnAll": true,
+        "filters": {
+          "statuses": ["OVERDUE"]
+        }
+      },
+      "credentials": {
+        "xeroOAuth2Api": {
+          "name": "Xero account"
+        }
+      }
+    },
+    {
+      "id": "node-merge",
+      "name": "Merge Results",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [440, 300],
+      "parameters": {
+        "mode": "append"
+      }
+    },
+    {
+      "id": "node-code",
+      "name": "Format Financial Summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [660, 300],
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconst outstanding = [];\nconst overdue = [];\nlet totalOutstanding = 0;\nlet totalOverdue = 0;\n\nfor (const item of items) {\n  const inv = item.json;\n  const contact = inv.Contact?.Name || 'Unknown';\n  const amount = inv.AmountDue || 0;\n  const ref = inv.InvoiceNumber || inv.Reference || '';\n  const due = inv.DueDate ? new Date(inv.DueDate.replace(/\\/Date\\((\\d+)\\+.*\\)\\//, '$1') * 1 || inv.DueDate).toLocaleDateString('en-AU') : 'No date';\n\n  const line = `${contact} — ${ref} — $${amount.toLocaleString('en-AU')} due ${due}`;\n\n  if (inv.Status === 'OVERDUE') {\n    overdue.push(line);\n    totalOverdue += amount;\n  } else {\n    outstanding.push(line);\n    totalOutstanding += amount;\n  }\n}\n\nconst date = new Date().toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' });\n\nconst lines = [`Xero Financial Summary — ${date}`, ''];\n\nif (overdue.length) {\n  lines.push(`OVERDUE (${overdue.length} invoices, total $${totalOverdue.toLocaleString('en-AU')})`);\n  overdue.forEach(l => lines.push(`  • ${l}`));\n  lines.push('');\n}\n\nif (outstanding.length) {\n  lines.push(`OUTSTANDING (${outstanding.length} invoices, total $${totalOutstanding.toLocaleString('en-AU')})`);\n  outstanding.forEach(l => lines.push(`  • ${l}`));\n}\n\nif (!overdue.length && !outstanding.length) {\n  lines.push('No outstanding or overdue invoices.');\n}\n\nreturn [{ json: { content: lines.join('\\n') } }];"
+      }
+    },
+    {
+      "id": "node-http",
+      "name": "Send to Agent Memory",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [880, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "https://marketing-agent-production-8efa.up.railway.app/api/memory",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendBody": true,
+        "specifyBody": "keypair",
+        "bodyParameters": {
+          "parameters": [
+            { "name": "content", "value": "={{ $json.content }}" }
+          ]
+        }
+      },
+      "credentials": {
+        "httpBearerAuth": {
+          "name": "Bearer Auth account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [{ "node": "Get Outstanding Invoices", "type": "main", "index": 0 }],
+        [{ "node": "Get Overdue Invoices", "type": "main", "index": 0 }]
+      ]
+    },
+    "Get Outstanding Invoices": {
+      "main": [[{ "node": "Merge Results", "type": "main", "index": 0 }]]
+    },
+    "Get Overdue Invoices": {
+      "main": [[{ "node": "Merge Results", "type": "main", "index": 1 }]]
+    },
+    "Merge Results": {
+      "main": [[{ "node": "Format Financial Summary", "type": "main", "index": 0 }]]
+    },
+    "Format Financial Summary": {
+      "main": [[{ "node": "Send to Agent Memory", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

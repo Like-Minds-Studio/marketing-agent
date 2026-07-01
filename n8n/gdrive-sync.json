@@ -1,0 +1,151 @@
+{
+  "name": "Like Minds — Google Drive Sync",
+  "nodes": [
+    {
+      "id": "node-schedule",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 300],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "daysInterval": 1,
+              "triggerAtHour": 1,
+              "triggerAtMinute": 0
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "node-search",
+      "name": "Search Google Docs",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [220, 300],
+      "parameters": {
+        "resource": "fileFolder",
+        "operation": "search",
+        "queryString": "mimeType = 'application/vnd.google-apps.document' and modifiedTime > '{{ $now.minus({hours: 24}).toISO() }}'",
+        "returnAll": true
+      },
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "id": "node-set",
+      "name": "Preserve File Info",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [440, 300],
+      "parameters": {
+        "mode": "keepAllExistingFields",
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a1",
+              "name": "fileId",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "a2",
+              "name": "fileName",
+              "value": "={{ $json.name }}",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "node-download",
+      "name": "Download as Text",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [660, 300],
+      "parameters": {
+        "resource": "file",
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.fileId }}",
+          "mode": "id"
+        },
+        "options": {
+          "googleFileConversion": {
+            "docsToFormat": "text/plain"
+          }
+        }
+      },
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "id": "node-code",
+      "name": "Extract Content",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [880, 300],
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst results = [];\n\nfor (const item of items) {\n  const binaryKey = Object.keys(item.binary || {})[0];\n  if (!binaryKey) continue;\n\n  const content = Buffer.from(item.binary[binaryKey].data, 'base64').toString('utf-8').trim();\n  if (content.length < 50) continue;\n\n  results.push({\n    json: {\n      fileId: item.json.fileId,\n      fileName: item.json.fileName,\n      content: content\n    }\n  });\n}\n\nreturn results;"
+      }
+    },
+    {
+      "id": "node-http",
+      "name": "Send to Agent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1100, 300],
+      "parameters": {
+        "method": "POST",
+        "url": "https://marketing-agent-production-8efa.up.railway.app/api/drive-sync",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendBody": true,
+        "specifyBody": "keypair",
+        "bodyParameters": {
+          "parameters": [
+            { "name": "fileId", "value": "={{ $json.fileId }}" },
+            { "name": "fileName", "value": "={{ $json.fileName }}" },
+            { "name": "content", "value": "={{ $json.content }}" }
+          ]
+        }
+      },
+      "credentials": {
+        "httpBearerAuth": {
+          "name": "Bearer Auth account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [[{ "node": "Search Google Docs", "type": "main", "index": 0 }]]
+    },
+    "Search Google Docs": {
+      "main": [[{ "node": "Preserve File Info", "type": "main", "index": 0 }]]
+    },
+    "Preserve File Info": {
+      "main": [[{ "node": "Download as Text", "type": "main", "index": 0 }]]
+    },
+    "Download as Text": {
+      "main": [[{ "node": "Extract Content", "type": "main", "index": 0 }]]
+    },
+    "Extract Content": {
+      "main": [[{ "node": "Send to Agent", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
