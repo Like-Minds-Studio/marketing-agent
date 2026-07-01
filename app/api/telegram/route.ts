@@ -2,6 +2,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import { LIKE_MINDS_SYSTEM_PROMPT } from '@/lib/prompts'
 import { supabase } from '@/lib/supabase'
 import { extractAndSaveMemory } from '@/lib/extractMemory'
+import { parseCommand, TELEGRAM_SKILLS } from '@/lib/telegramSkills'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN ?? ''
@@ -140,8 +141,17 @@ export async function POST(req: Request) {
       const name = msg.chat.first_name ? ` ${msg.chat.first_name}` : ''
       await sendReply(
         chatId,
-        `Hey${name} — your CEO advisor is ready.\n\nAsk me anything: a deal you're weighing, a proposal, a decision, or what to focus on this week.\n\nYour chat ID: ${chatId}`
+        `Hey${name} — your CEO advisor is ready.\n\nAsk me anything, or use a command:\n\n/brief — morning priorities\n/audit <url> — website audit\n/competitors <url> — competitive analysis\n/proposal <client> — proposal outline\n/emails <topic> — email sequence\n/social <topic> — social content week\n/ads <url> — ad copy\n/copy <url> — copy rewrite\n/funnel <url> — funnel analysis\n/launch <product> — launch playbook\n/seo <url> — SEO audit\n/brand <url> — brand voice\n/help — show all commands\n\nYour chat ID: ${chatId}`
       )
+      return new Response('OK', { status: 200 })
+    }
+
+    // /help command
+    if (text === '/help') {
+      const lines = Object.entries(TELEGRAM_SKILLS)
+        .map(([cmd, skill]) => `/${cmd} — ${skill.description}`)
+        .join('\n')
+      await sendReply(chatId, `Available commands:\n\n${lines}`)
       return new Response('OK', { status: 200 })
     }
 
@@ -153,6 +163,12 @@ export async function POST(req: Request) {
       fetchMemories(),
     ])
 
+    // Parse skill command if present
+    const parsed = parseCommand(text)
+    const skillInstruction = parsed?.skill
+      ? `\n\n## ACTIVE TASK\n${parsed.skill.prompt(parsed.args)}`
+      : ''
+
     const messages: ChatMessage[] = [...history, { role: 'user', content: text }]
 
     const today = new Date().toLocaleDateString('en-AU', {
@@ -163,7 +179,7 @@ export async function POST(req: Request) {
       timeZone: 'Australia/Sydney',
     })
 
-    const systemPrompt = `${memoriesSection}Today's date is ${today} (Sydney time).\n\n${LIKE_MINDS_SYSTEM_PROMPT}`
+    const systemPrompt = `${memoriesSection}Today's date is ${today} (Sydney time).\n\n${LIKE_MINDS_SYSTEM_PROMPT}${skillInstruction}`
 
     const response = await anthropic.messages.create({
       model: 'claude-sonnet-4-6',
