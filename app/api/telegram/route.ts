@@ -1,6 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { LIKE_MINDS_SYSTEM_PROMPT } from '@/lib/prompts'
 import { supabase } from '@/lib/supabase'
+import { extractAndSaveMemory } from '@/lib/extractMemory'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN ?? ''
@@ -176,12 +177,8 @@ export async function POST(req: Request) {
     const updatedMessages: ChatMessage[] = [...messages, { role: 'assistant', content: reply }]
     await saveHistory(chatId, updatedMessages)
 
-    // Fire-and-forget memory extraction (same as web app tabs)
-    fetch(new URL('/api/memory/extract', req.url).toString(), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userMessage: text, assistantMessage: reply }),
-    }).catch(() => {})
+    // Extract memory directly (no loopback HTTP — avoids Railway self-request issues)
+    extractAndSaveMemory(text, reply).catch(() => {})
 
     await sendReply(chatId, reply)
 
