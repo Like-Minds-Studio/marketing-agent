@@ -17,16 +17,23 @@ function chunkText(text: string): string[] {
   return chunks
 }
 
+const FILE_ID_RE = /^[a-zA-Z0-9_-]+$/
+
 export async function POST(req: Request) {
+  // Fail-closed: require N8N_WEBHOOK_SECRET to be configured
   const secret = process.env.N8N_WEBHOOK_SECRET
-  if (secret) {
-    const auth = req.headers.get('authorization') ?? ''
-    if (auth !== `Bearer ${secret}`) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: JSON_HEADERS,
-      })
-    }
+  if (!secret) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: JSON_HEADERS,
+    })
+  }
+  const auth = req.headers.get('authorization') ?? ''
+  if (auth !== `Bearer ${secret}`) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: JSON_HEADERS,
+    })
   }
 
   if (!supabase) {
@@ -45,6 +52,20 @@ export async function POST(req: Request) {
   if (!fileId?.trim() || !content?.trim()) {
     return new Response(JSON.stringify({ error: 'fileId and content are required' }), {
       status: 400,
+      headers: JSON_HEADERS,
+    })
+  }
+
+  if (!FILE_ID_RE.test(fileId.trim())) {
+    return new Response(JSON.stringify({ error: 'Invalid fileId' }), {
+      status: 400,
+      headers: JSON_HEADERS,
+    })
+  }
+
+  if (content.length > 50000) {
+    return new Response(JSON.stringify({ error: 'Content too large' }), {
+      status: 413,
       headers: JSON_HEADERS,
     })
   }
@@ -79,7 +100,7 @@ export async function POST(req: Request) {
   const { error } = await supabase.from('memories').insert(rows)
 
   if (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: 'Database error' }), {
       status: 500,
       headers: JSON_HEADERS,
     })

@@ -16,7 +16,7 @@ export async function DELETE(
   const { error } = await supabase.from('conversations').delete().eq('id', id)
 
   if (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: 'Database error' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     })

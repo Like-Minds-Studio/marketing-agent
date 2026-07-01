@@ -32,10 +32,19 @@ export async function POST(req: Request) {
   }
 
   try {
-    const { userMessage, assistantMessage } = await req.json() as {
+    const { userMessage: rawUser, assistantMessage: rawAssistant } = await req.json() as {
       userMessage: string
       assistantMessage: string
     }
+
+    if (typeof rawUser !== 'string' || typeof rawAssistant !== 'string') {
+      return new Response(JSON.stringify({ ok: true, extracted: 0 }), {
+        headers: { 'Content-Type': 'application/json' },
+      })
+    }
+
+    const userMessage = rawUser.slice(0, 5000)
+    const assistantMessage = rawAssistant.slice(0, 5000)
 
     const response = await anthropic.messages.create({
       model: 'claude-haiku-4-5-20251001',
@@ -44,7 +53,7 @@ export async function POST(req: Request) {
       messages: [
         {
           role: 'user',
-          content: `USER: ${userMessage}\n\nASSISTANT: ${assistantMessage.slice(0, 1500)}`,
+          content: `USER: ${userMessage}\n\nASSISTANT: ${assistantMessage.slice(0, 2000)}`,
         },
       ],
     })

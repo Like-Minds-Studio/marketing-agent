@@ -112,6 +112,15 @@ export async function POST(req: Request) {
   try {
     if (!BOT_TOKEN) return new Response('Not configured', { status: 500 })
 
+    // Verify Telegram webhook secret if configured
+    const webhookSecret = process.env.TELEGRAM_WEBHOOK_SECRET
+    if (webhookSecret) {
+      const token = req.headers.get('x-telegram-bot-api-secret-token') ?? ''
+      if (token !== webhookSecret) {
+        return new Response('Unauthorized', { status: 401 })
+      }
+    }
+
     const update = (await req.json()) as TgUpdate
     const msg = update.message
     if (!msg?.text) return new Response('OK', { status: 200 })

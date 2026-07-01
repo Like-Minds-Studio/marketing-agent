@@ -103,6 +103,22 @@ export async function POST(req: Request) {
       })
     }
 
+    if (messages.length > 100) {
+      return new Response(JSON.stringify({ error: 'Too many messages' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    }
+
+    for (const msg of messages) {
+      if (typeof msg.content === 'string' && msg.content.length > 50000) {
+        return new Response(JSON.stringify({ error: 'Message too large' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        })
+      }
+    }
+
     const today = new Date().toLocaleDateString('en-AU', {
       weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
       timeZone: 'Australia/Sydney',
@@ -206,9 +222,8 @@ export async function POST(req: Request) {
         'Cache-Control': 'no-cache',
       },
     })
-  } catch (err) {
-    const message = err instanceof Error ? err.message : 'Internal server error'
-    return new Response(JSON.stringify({ error: message }), {
+  } catch {
+    return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     })

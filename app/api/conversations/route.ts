@@ -15,7 +15,7 @@ export async function GET() {
     .limit(50)
 
   if (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: 'Database error' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     })
@@ -43,7 +43,7 @@ export async function POST(req: Request) {
   )
 
   if (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: 'Database error' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     })

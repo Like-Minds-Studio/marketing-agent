@@ -58,21 +58,16 @@ export async function POST(req: Request) {
   try {
     if (!BOT_TOKEN) return new Response('Bot not configured', { status: 500 })
 
-    // Auth check
-    if (SECRET) {
-      const auth = req.headers.get('authorization') ?? ''
-      if (auth !== `Bearer ${SECRET}`) {
-        return new Response('Unauthorized', { status: 401 })
-      }
+    // Auth check — fail-closed: require secret always
+    if (!SECRET) {
+      return new Response('Unauthorized', { status: 401 })
+    }
+    const auth = req.headers.get('authorization') ?? ''
+    if (auth !== `Bearer ${SECRET}`) {
+      return new Response('Unauthorized', { status: 401 })
     }
 
-    // Allow chat_id override in body, fallback to env var
-    let chatId = DAVID_CHAT_ID
-    try {
-      const body = await req.json()
-      if (body?.chat_id) chatId = String(body.chat_id)
-    } catch { /* no body */ }
-
+    const chatId = DAVID_CHAT_ID
     if (!chatId) {
       return new Response('No chat_id configured', { status: 400 })
     }

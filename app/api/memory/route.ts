@@ -29,23 +29,27 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  // Fail-closed: n8n-only endpoint, always require secret
+  const secret = process.env.N8N_WEBHOOK_SECRET
+  if (!secret) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: JSON_HEADERS,
+    })
+  }
+  const auth = req.headers.get('authorization') ?? ''
+  if (auth !== `Bearer ${secret}`) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: JSON_HEADERS,
+    })
+  }
+
   if (!supabase) {
     return new Response(JSON.stringify({ error: 'Supabase not configured' }), {
       status: 503,
       headers: JSON_HEADERS,
     })
-  }
-
-  // Require bearer token if N8N_WEBHOOK_SECRET is configured
-  const secret = process.env.N8N_WEBHOOK_SECRET
-  if (secret) {
-    const auth = req.headers.get('authorization') ?? ''
-    if (auth !== `Bearer ${secret}`) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: JSON_HEADERS,
-      })
-    }
   }
 
   const { content } = await req.json()
@@ -63,7 +67,7 @@ export async function POST(req: Request) {
     .single()
 
   if (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: 'Database error' }), {
       status: 500,
       headers: JSON_HEADERS,
     })
@@ -80,11 +84,26 @@ export async function PATCH(req: Request) {
     })
   }
 
-  const { id, pinned } = await req.json()
+  const body = await req.json()
+  const { id, pinned } = body
+
+  if (typeof id !== 'string' || !id.trim()) {
+    return new Response(JSON.stringify({ error: 'Invalid id' }), {
+      status: 400,
+      headers: JSON_HEADERS,
+    })
+  }
+  if (typeof pinned !== 'boolean') {
+    return new Response(JSON.stringify({ error: 'pinned must be boolean' }), {
+      status: 400,
+      headers: JSON_HEADERS,
+    })
+  }
+
   const { error } = await supabase.from('memories').update({ pinned }).eq('id', id)
 
   if (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: 'Database error' }), {
       status: 500,
       headers: JSON_HEADERS,
     })
@@ -102,10 +121,17 @@ export async function DELETE(req: Request) {
   }
 
   const { id } = await req.json()
+  if (typeof id !== 'string' || !id.trim()) {
+    return new Response(JSON.stringify({ error: 'Invalid id' }), {
+      status: 400,
+      headers: JSON_HEADERS,
+    })
+  }
+
   const { error } = await supabase.from('memories').delete().eq('id', id)
 
   if (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: 'Database error' }), {
       status: 500,
       headers: JSON_HEADERS,
     })
